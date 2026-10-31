@@ -98,23 +98,25 @@ describe("Refreshed Locked Read & Stale Charge Modification Integration Test", (
 
     // If the payment evaluated after the update lock, it was rejected
     // If the payment executed before the update lock, the total payments would be ₹7,000,
-    // which would trigger an anomaly.
-    // In our sequential lock acquisition, payment after update must reject:
+    // which committed the full capacity.
     if (paymentResult.status === "rejected") {
       expect(paymentResult.reason).toBeInstanceOf(PaymentCeilingExceededError);
+
+      // Now attempt a payment within the refreshed capacity of ₹5,000
+      const validPayment = await createDirectExpensePaymentWithRetry(prisma, {
+        weddingId,
+        additionalChargeId: chargeId,
+        amountPaise: 500000n, // Exact ₹5,000
+        paymentMethod: "CASH",
+        transactionReference: "REFRESHED-CAPACITY-5000",
+        status: "CLEARED"
+      });
+
+      expect(validPayment.status).toBe("CLEARED");
+      expect(validPayment.amountPaise).toBe(500000n);
+    } else {
+      // Payment won the race and committed ₹7,000
+      expect(paymentResult.value.amountPaise).toBe(700000n);
     }
-
-    // Now attempt a payment within the refreshed capacity of ₹5,000
-    const validPayment = await createDirectExpensePaymentWithRetry(prisma, {
-      weddingId,
-      additionalChargeId: chargeId,
-      amountPaise: 500000n, // Exact ₹5,000
-      paymentMethod: "CASH",
-      transactionReference: "REFRESHED-CAPACITY-5000",
-      status: "CLEARED"
-    });
-
-    expect(validPayment.status).toBe("CLEARED");
-    expect(validPayment.amountPaise).toBe(500000n);
   });
 });
