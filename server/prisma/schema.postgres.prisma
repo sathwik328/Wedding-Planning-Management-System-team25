@@ -1,0 +1,482 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("POSTGRES_DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// -------------------------------------------------------------
+// USER, TEAM & AUDIT
+// -------------------------------------------------------------
+model User {
+  id              String          @id @default(uuid())
+  email           String          @unique
+  name            String
+  role            String          // "ADMIN", "LEAD_PLANNER", "COORDINATOR", "FINANCE_DIRECTOR"
+  phone           String?
+  hourlyRatePaise BigInt          @default(150000) // ₹1,500.00/hr in paise
+  tasksAssigned   Task[]
+  schedulesLead   EventSchedule[]
+  workLogs        TeamWorkLog[]
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+}
+
+model AuditLog {
+  id          String   @id @default(uuid())
+  entityName  String
+  entityId    String
+  action      String
+  performedBy String
+  detailsJson String
+  timestamp   DateTime @default(now())
+}
+
+// -------------------------------------------------------------
+// CRM, COUPLES & DIGITAL AGREEMENT (DEV A)
+// -------------------------------------------------------------
+model Enquiry {
+  id                 String    @id @default(uuid())
+  coupleNames        String
+  primaryEmail       String
+  primaryPhone       String
+  source             String    // "INSTAGRAM", "WHATSAPP", "PHONE_CALL", "REFERRAL", "WEBSITE"
+  roughDate          DateTime
+  estimatedGuests    Int       @default(400)
+  themePreference    String?
+  budgetCeilingPaise BigInt
+  status             String    @default("NEW") // "NEW", "CONSULTATION_SCHEDULED", "AGREEMENT_SENT", "CONVERTED", "LOST"
+  consultationDate   DateTime?
+  notes              String?
+  couple             Couple?
+  isDemoData         Boolean   @default(false)
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+}
+
+model Couple {
+  id               String            @id @default(uuid())
+  enquiryId        String?           @unique
+  enquiry          Enquiry?          @relation(fields: [enquiryId], references: [id])
+  partnerOneName   String
+  partnerTwoName   String
+  email            String
+  phone            String
+  address          String?
+  serviceAgreement ServiceAgreement?
+  wedding          Wedding?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+}
+
+model ServiceAgreement {
+  id                  String    @id @default(uuid())
+  coupleId            String    @unique
+  couple              Couple    @relation(fields: [coupleId], references: [id], onDelete: Cascade)
+  packageType         String    // "FULL_SERVICE", "PARTIAL_DAY_OF"
+  agreedFeePaise      BigInt
+  paymentTerms        String
+  version             Int       @default(1)
+  agreementHash       String?
+  signatureDataUrl    String?
+  signedByName        String?
+  signedAt            DateTime?
+  signerIpAddressHash String?
+  isExecuted          Boolean   @default(false)
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+}
+
+// -------------------------------------------------------------
+// WEDDINGS & MULTI-DAY ITINERARY (SHARED / DEV A)
+// -------------------------------------------------------------
+model Wedding {
+  id                     String                  @id @default(uuid())
+  coupleId               String                  @unique
+  couple                 Couple                  @relation(fields: [coupleId], references: [id])
+  title                  String
+  packageType            String                  // "FULL_SERVICE", "PARTIAL_DAY_OF"
+  startDate              DateTime
+  endDate                DateTime
+  primaryCity            String                  // "Jaipur", "Udaipur"
+  venueName              String
+  targetGuestCount       Int                     @default(400)
+  totalBudgetPaise       BigInt
+  status                 String                  @default("PLANNING") // "PLANNING", "ACTIVE_EXECUTION", "COMPLETED", "SETTLED"
+  tasksGenerated         Boolean                 @default(false)
+  isDemoData             Boolean                 @default(false)
+  
+  days                   WeddingDay[]
+  guests                 Guest[]
+  tasks                  Task[]
+  schedules              EventSchedule[]
+  incidents              Incident[]
+  quotationRequestGroups QuotationRequestGroup[]
+  weddingVendors         WeddingVendor[]
+  milestones             PaymentMilestone[]
+  clientInvoices         ClientInvoice[]
+  additionalCharges      AdditionalCharge[]
+  workLogs               TeamWorkLog[]
+  
+  createdAt              DateTime                @default(now())
+  updatedAt              DateTime                @updatedAt
+}
+
+model WeddingDay {
+  id          String          @id @default(uuid())
+  weddingId   String
+  wedding     Wedding         @relation(fields: [weddingId], references: [id], onDelete: Cascade)
+  dayNumber   Int
+  date        DateTime
+  title       String
+  schedules   EventSchedule[]
+  createdAt   DateTime        @default(now())
+}
+
+model Guest {
+  id            String   @id @default(uuid())
+  weddingId     String
+  wedding       Wedding  @relation(fields: [weddingId], references: [id], onDelete: Cascade)
+  fullName      String
+  category      String   // "VIP", "GROOM_SIDE", "BRIDE_SIDE", "EXTENDED"
+  rsvpStatus    String   @default("CONFIRMED")
+  dietaryNotes  String?
+  tableAssigned String?
+  createdAt     DateTime @default(now())
+}
+
+// -------------------------------------------------------------
+// TASKS & CHECKLISTS (DEV A)
+// -------------------------------------------------------------
+model Task {
+  id           String    @id @default(uuid())
+  weddingId    String
+  wedding      Wedding   @relation(fields: [weddingId], references: [id], onDelete: Cascade)
+  templateKey  String
+  title        String
+  category     String    // "VENUE_DESIGN", "VENDORS", "GUEST_LOGISTICS", "BIG_DAY_EXECUTION"
+  stage        String    @default("TO_PLAN") // "TO_PLAN", "IN_PROGRESS", "BLOCKED", "DONE"
+  priority     String    @default("MEDIUM")  // "LOW", "MEDIUM", "HIGH", "CRITICAL"
+  assignedToId String?
+  assignedTo   User?     @relation(fields: [assignedToId], references: [id])
+  dueDate      DateTime
+  isCustom     Boolean   @default(false)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@unique([weddingId, templateKey])
+}
+
+// -------------------------------------------------------------
+// LIVE EVENT OPERATIONS, CHECK-INS & INCIDENTS (DEV A)
+// -------------------------------------------------------------
+model EventSchedule {
+  id            String      @id @default(uuid())
+  weddingId     String
+  wedding       Wedding     @relation(fields: [weddingId], references: [id], onDelete: Cascade)
+  weddingDayId  String
+  weddingDay    WeddingDay  @relation(fields: [weddingDayId], references: [id], onDelete: Cascade)
+  subEvent      String      // "MEHENDI", "HALDI", "SANGEET", "BARAAT", "PHERAS", "RECEPTION"
+  activityName  String
+  startTime     DateTime
+  endTime       DateTime
+  location      String
+  coordinatorId String?
+  coordinator   User?       @relation(fields: [coordinatorId], references: [id])
+  notes         String?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+}
+
+model VendorCheckIn {
+  id               String        @id @default(uuid())
+  weddingVendorId  String
+  weddingVendor    WeddingVendor @relation(fields: [weddingVendorId], references: [id], onDelete: Cascade)
+  scheduledArrival DateTime?     // Null means UNSCHEDULED
+  actualArrival    DateTime?
+  status           String        @default("EXPECTED") // "EXPECTED", "ARRIVED", "DELAYED", "UNSCHEDULED"
+  delayMinutes     Int           @default(0)
+  checkedInBy      String?
+  notes            String?
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+}
+
+model Incident {
+  id                String             @id @default(uuid())
+  weddingId         String
+  wedding           Wedding            @relation(fields: [weddingId], references: [id], onDelete: Cascade)
+  title             String
+  description       String
+  severity          String             @default("MEDIUM") // "LOW", "MEDIUM", "CRITICAL"
+  reportedAt        DateTime           @default(now())
+  reportedBy        String
+  status            String             @default("OPEN")   // "OPEN", "RESOLVING", "RESOLVED"
+  resolvedAt        DateTime?
+  resolutionNotes   String?
+  additionalCharges AdditionalCharge[]
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+}
+
+// -------------------------------------------------------------
+// VENDORS, RFQ GROUPS & QUOTATIONS (DEV B)
+// -------------------------------------------------------------
+model Vendor {
+  id                String              @id @default(uuid())
+  businessName      String
+  category          String              // "CATERING", "DECOR_FLORAL", "SOUND_LIGHT", etc.
+  contactPerson     String
+  phone             String
+  email             String
+  city              String
+  notes             String?
+  quotations        VendorQuotation[]
+  weddingVendors    WeddingVendor[]
+  vendorRequests    VendorRequest[]
+  additionalCharges AdditionalCharge[]
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+}
+
+model QuotationRequestGroup {
+  id                 String             @id @default(uuid())
+  weddingId          String
+  wedding            Wedding            @relation(fields: [weddingId], references: [id], onDelete: Cascade)
+  title              String
+  category           String
+  targetGuestCount   Int                @default(400)
+  status             String             @default("OPEN") // "OPEN", "AWARDED", "CANCELLED"
+  awardedQuotationId String?            @unique
+  awardedQuotation   VendorQuotation?   @relation("AwardedGroupQuotation", fields: [awardedQuotationId], references: [id])
+  requests           VendorRequest[]
+  weddingVendors     WeddingVendor[]
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+}
+
+model VendorRequest {
+  id                      String                @id @default(uuid())
+  quotationRequestGroupId String
+  group                   QuotationRequestGroup @relation(fields: [quotationRequestGroupId], references: [id], onDelete: Cascade)
+  vendorId                String
+  vendor                  Vendor                @relation(fields: [vendorId], references: [id])
+  requirement             String
+  status                  String                @default("PENDING") // "PENDING", "QUOTE_RECEIVED", "AWARDED", "REJECTED_COMPETING_AWARDED"
+  quotation               VendorQuotation?
+  createdAt               DateTime              @default(now())
+  updatedAt               DateTime              @updatedAt
+
+  @@unique([quotationRequestGroupId, vendorId])
+}
+
+model VendorQuotation {
+  id                 String              @id @default(uuid())
+  vendorRequestId    String              @unique
+  vendorRequest      VendorRequest       @relation(fields: [vendorRequestId], references: [id], onDelete: Cascade)
+  vendorId           String
+  vendor             Vendor              @relation(fields: [vendorId], references: [id])
+  quoteReference     String
+  menuDescription    String?
+  pricePerPlatePaise BigInt?
+  baseAmountPaise    BigInt
+  extraHourRatePaise BigInt              @default(0)
+  documentUrl        String?
+  isSelectedWinner   Boolean             @default(false)
+  lineItems          QuotationLineItem[]
+  awardedInGroup     QuotationRequestGroup? @relation("AwardedGroupQuotation")
+  weddingVendor      WeddingVendor?
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+}
+
+model QuotationLineItem {
+  id                  String          @id @default(uuid())
+  quotationId         String
+  quotation           VendorQuotation @relation(fields: [quotationId], references: [id], onDelete: Cascade)
+  description         String
+  quantityScaledUnits BigInt          @default(1000) // Scale 1000
+  unitPricePaise      BigInt
+  totalPricePaise     BigInt
+}
+
+model WeddingVendor {
+  id                        String                @id @default(uuid())
+  weddingId                 String
+  wedding                   Wedding               @relation(fields: [weddingId], references: [id], onDelete: Cascade)
+  vendorId                  String
+  vendor                    Vendor                @relation(fields: [vendorId], references: [id])
+  quotationRequestGroupId   String
+  quotationRequestGroup     QuotationRequestGroup @relation(fields: [quotationRequestGroupId], references: [id])
+  serviceCategory           String
+  quotationId               String?               @unique
+  quotation                 VendorQuotation?      @relation(fields: [quotationId], references: [id])
+  agreedBaselineAmountPaise BigInt
+  status                    String                @default("CONTRACTED")
+  checkIns                  VendorCheckIn[]
+  vendorBills               VendorBill[]
+  additionalCharges         AdditionalCharge[]
+  createdAt                 DateTime              @default(now())
+  updatedAt                 DateTime              @updatedAt
+
+  @@unique([weddingId, vendorId, quotationRequestGroupId])
+}
+
+// -------------------------------------------------------------
+// CLIENT INVOICING, MILESTONES & PAYMENTS (DEV B)
+// -------------------------------------------------------------
+model PaymentMilestone {
+  id                String                   @id @default(uuid())
+  weddingId         String
+  wedding           Wedding                  @relation(fields: [weddingId], references: [id], onDelete: Cascade)
+  type              String                   // "BOOKING_DEPOSIT", "ADVANCE_PAYMENT", "FINAL_SETTLEMENT"
+  title             String
+  dueDate           DateTime
+  targetAmountPaise BigInt
+  status            String                   @default("PENDING") // "PENDING", "PARTIALLY_PAID", "PAID", "OVERDUE"
+  invoiceLinks      ClientInvoiceMilestone[]
+  createdAt         DateTime                 @default(now())
+  updatedAt         DateTime                 @updatedAt
+}
+
+model ClientInvoice {
+  id                String                   @id @default(uuid())
+  weddingId         String
+  wedding           Wedding                  @relation(fields: [weddingId], references: [id], onDelete: Cascade)
+  invoiceNumber     String                   @unique
+  invoiceType       String                   // "CONTRACT_MILESTONE", "SUPPLEMENTARY_EXTRAS"
+  issueDate         DateTime                 @default(now())
+  dueDate           DateTime
+  subtotalPaise     BigInt
+  taxPaise          BigInt                   @default(0)
+  extraChargesPaise BigInt                   @default(0)
+  totalAmountPaise  BigInt
+  status            String                   @default("ISSUED") // "ISSUED", "PARTIALLY_PAID", "PAID", "CANCELLED"
+  milestones        ClientInvoiceMilestone[]
+  payments          ClientPayment[]
+  additionalCharges AdditionalCharge[]
+  createdAt         DateTime                 @default(now())
+  updatedAt         DateTime                 @updatedAt
+}
+
+model ClientInvoiceMilestone {
+  id          String           @id @default(uuid())
+  invoiceId   String
+  invoice     ClientInvoice    @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  milestoneId String
+  milestone   PaymentMilestone @relation(fields: [milestoneId], references: [id], onDelete: Cascade)
+
+  @@unique([invoiceId, milestoneId])
+}
+
+model ClientPayment {
+  id                   String        @id @default(uuid())
+  clientInvoiceId      String
+  clientInvoice        ClientInvoice @relation(fields: [clientInvoiceId], references: [id])
+  amountPaise          BigInt
+  paymentDate          DateTime      @default(now())
+  paymentMethod        String        // "NEFT_RTGS", "CHEQUE", "BANK_TRANSFER"
+  transactionReference String        @unique
+  status               String        @default("PENDING") // "PENDING", "PROCESSING", "CLEARED", "FAILED", "CANCELLED"
+  clearedAt            DateTime?
+  notes                String?
+  createdAt            DateTime      @default(now())
+}
+
+// -------------------------------------------------------------
+// VENDOR BILLS, SETTLEMENTS & ADDITIONAL CHARGES (DEV B)
+// -------------------------------------------------------------
+model AdditionalCharge {
+  id                  String                 @id @default(uuid())
+  weddingId           String
+  wedding             Wedding                @relation(fields: [weddingId], references: [id], onDelete: Cascade)
+  description         String
+  reasonType          String                 // "EXTRA_GUESTS", "EXTENDED_HOURS", "EMERGENCY_EQUIPMENT", "INCIDENT_RESOLUTION", "MISC"
+  quantityScaledUnits BigInt                 @default(1000)
+  unitCostPaise       BigInt
+  totalCostPaise      BigInt
+  vendorId            String?
+  vendor              Vendor?                @relation(fields: [vendorId], references: [id])
+  weddingVendorId     String?
+  weddingVendor       WeddingVendor?         @relation(fields: [weddingVendorId], references: [id])
+  incidentId          String?
+  incident            Incident?              @relation(fields: [incidentId], references: [id])
+  vendorBillId        String?
+  vendorBill          VendorBill?            @relation(fields: [vendorBillId], references: [id])
+  clientInvoiceId     String?
+  clientInvoice       ClientInvoice?         @relation(fields: [clientInvoiceId], references: [id])
+  billedToClient      Boolean                @default(true)
+  status              String                 @default("PENDING") // "PENDING", "BILLED_BY_VENDOR", "SETTLED"
+  directPayments      DirectExpensePayment[]
+  createdAt           DateTime               @default(now())
+  updatedAt           DateTime               @updatedAt
+}
+
+model DirectExpensePayment {
+  id                   String           @id @default(uuid())
+  additionalChargeId   String
+  additionalCharge     AdditionalCharge @relation(fields: [additionalChargeId], references: [id], onDelete: Cascade)
+  amountPaise          BigInt
+  paymentMethod        String           // "NEFT_RTGS", "CASH", "UPI", "COMPANY_CARD", "BANK_TRANSFER"
+  transactionReference String           @unique
+  status               String           @default("PENDING") // "PENDING", "PROCESSING", "CLEARED", "FAILED", "CANCELLED"
+  paymentDate          DateTime         @default(now())
+  clearedAt            DateTime?
+  notes                String?
+  createdAt            DateTime         @default(now())
+  updatedAt            DateTime         @updatedAt
+}
+
+model VendorBill {
+  id                  String             @id @default(uuid())
+  weddingVendorId     String
+  weddingVendor       WeddingVendor      @relation(fields: [weddingVendorId], references: [id], onDelete: Cascade)
+  billNumber          String
+  baseAmountPaise     BigInt
+  extraAmountPaise    BigInt             @default(0)
+  totalBilledPaise    BigInt
+  status              String             @default("DRAFT") // "DRAFT", "SUBMITTED", "APPROVED", "PAID", "CANCELLED"
+  reconciled          Boolean            @default(false)
+  varianceReason      String?
+  reconciliationNotes String?
+  additionalCharges   AdditionalCharge[]
+  payments            VendorPayment[]
+  createdAt           DateTime           @default(now())
+  updatedAt           DateTime           @updatedAt
+
+  @@unique([weddingVendorId, billNumber])
+}
+
+model VendorPayment {
+  id                   String      @id @default(uuid())
+  vendorBillId         String
+  vendorBill           VendorBill  @relation(fields: [vendorBillId], references: [id])
+  paymentType          String      // "ADVANCE", "FINAL_SETTLEMENT"
+  amountPaise          BigInt
+  paymentDate          DateTime    @default(now())
+  paymentMethod        String      // "NEFT_RTGS", "CHEQUE", "BANK_TRANSFER"
+  transactionReference String      @unique
+  status               String      @default("PENDING") // "PENDING", "PROCESSING", "CLEARED", "FAILED", "CANCELLED"
+  clearedAt            DateTime?
+  notes                String?
+  createdAt            DateTime    @default(now())
+}
+
+// -------------------------------------------------------------
+// INTERNAL PLANNING LABOR LOGS (DEV B)
+// -------------------------------------------------------------
+model TeamWorkLog {
+  id                  String   @id @default(uuid())
+  weddingId           String
+  wedding             Wedding  @relation(fields: [weddingId], references: [id], onDelete: Cascade)
+  userId              String
+  user                User     @relation(fields: [userId], references: [id])
+  date                DateTime
+  hoursWorked         Float
+  hourlyRatePaise     BigInt
+  totalLaborCostPaise BigInt
+  taskDescription     String
+  createdAt           DateTime @default(now())
+}

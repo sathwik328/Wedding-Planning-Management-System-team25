@@ -1,0 +1,27 @@
+{
+  "name": "wedding-planning-management-system",
+  "version": "1.0.0",
+  "private": true,
+  "description": "The Royal Knot — Unified Wedding Operations & Planning Management System",
+  "workspaces": [
+    "shared",
+    "server",
+    "client"
+  ],
+  "scripts": {
+    "build": "npm run build --workspace=shared && npm run build --workspace=server && npm run build --workspace=client",
+    "build:shared": "npm run build --workspace=shared",
+    "build:server": "npm run build --workspace=server",
+    "build:client": "npm run build --workspace=client",
+    "dev:server": "npm run dev --workspace=server",
+    "dev:client": "npm run dev --workspace=client",
+    "test": "npm run test --workspace=shared && npm run test --workspace=server",
+    "verify:parity": "npm run verify:parity --workspace=server",
+    "prisma:generate": "npm run prisma:generate --workspace=server",
+    "prisma:migrate": "npm run prisma:migrate --workspace=server",
+    "prisma:seed": "npm run prisma:seed --workspace=server"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.5"
+  }
+}

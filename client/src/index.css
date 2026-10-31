@@ -1,0 +1,32 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-royal-ivory text-royal-charcoal font-sans antialiased;
+  }
+  
+  h1, h2, h3, h4, .font-display {
+    @apply font-serif;
+  }
+}
+
+/* Custom subtle scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #F7F4EE;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #C5A059;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #5B1424;
+}
