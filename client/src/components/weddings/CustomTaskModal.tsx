@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Modal } from '../common/Modal';
 import { Button } from '../common/Button';
+import { apiFetch } from '../../services/api';
 
 export interface CustomTaskModalProps {
   isOpen: boolean;
@@ -33,7 +34,7 @@ export const CustomTaskModal: React.FC<CustomTaskModalProps> = ({
     setError(null);
 
     try {
-      const res = await fetch(`/api/weddings/${weddingId}/tasks/custom`, {
+      const res = await apiFetch(`/api/weddings/${weddingId}/tasks/custom`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

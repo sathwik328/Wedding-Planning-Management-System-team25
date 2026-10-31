@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
-import { hashPassword, verifyPassword } from "../src/utils/password.js";
+import { hashPassword, verifyPassword, verifyPasswordAsync } from "../src/utils/password.js";
 
-describe("Phase 4A: Password Hashing & Verification Utility", () => {
+describe("Phase 4: Password Hashing & Asynchronous Verification", () => {
   it("generates a salted scrypt hash", () => {
     const raw = "RoyalKnot#2026";
     const hash = hashPassword(raw);
@@ -20,7 +20,7 @@ describe("Phase 4A: Password Hashing & Verification Utility", () => {
     expect(verifyPassword(raw, hash2)).toBe(true);
   });
 
-  it("verifies correct password and rejects incorrect password", () => {
+  it("verifies correct password and rejects incorrect password synchronously", () => {
     const raw = "JaipurPalace#Pass";
     const hash = hashPassword(raw);
 
@@ -28,6 +28,26 @@ describe("Phase 4A: Password Hashing & Verification Utility", () => {
     expect(verifyPassword("WrongPassword", hash)).toBe(false);
     expect(verifyPassword("", hash)).toBe(false);
     expect(verifyPassword(raw, "invalid:format")).toBe(false);
+  });
+
+  it("asynchronously verifies password with full parity to synchronous scrypt", async () => {
+    const raw = "UdaipurLakePalace#99";
+    const hash = hashPassword(raw);
+
+    const isValid = await verifyPasswordAsync(raw, hash);
+    const isInvalid = await verifyPasswordAsync("WrongPassword", hash);
+
+    expect(isValid).toBe(true);
+    expect(isInvalid).toBe(false);
+  });
+
+  it("safely rejects empty and malformed hashes without throwing", async () => {
+    expect(await verifyPasswordAsync("ValidPass123", "")).toBe(false);
+    expect(await verifyPasswordAsync("ValidPass123", "not-a-hash")).toBe(false);
+    expect(await verifyPasswordAsync("ValidPass123", "scrypt:only-two-parts")).toBe(false);
+    expect(await verifyPasswordAsync("ValidPass123", "scrypt:bad_salt:bad_hash")).toBe(false);
+    expect(verifyPassword("ValidPass123", "")).toBe(false);
+    expect(verifyPassword("ValidPass123", "not-scrypt-hash")).toBe(false);
   });
 
   it("rejects passwords shorter than 6 characters", () => {

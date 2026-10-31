@@ -2,6 +2,7 @@ import { Router, Request, Response, NextFunction } from "express";
 import { PrismaClient } from "@prisma/client";
 import { DayOfOpsService } from "../services/dayOfOps.service.js";
 import { z } from "zod";
+import { authenticate, requirePermission, validateCsrf } from "../middleware/auth.js";
 
 const CreateScheduleSchema = z.object({
   weddingDayId: z.string().uuid(),
@@ -34,8 +35,11 @@ export function createDayOfOpsRouter(prisma: PrismaClient): Router {
   const router = Router();
   const opsService = new DayOfOpsService(prisma);
 
+  // All Day-of Operations routes require an authenticated session
+  router.use(authenticate(prisma));
+
   // Get minute-by-minute schedules
-  router.get("/:weddingId/schedules", async (req: Request, res: Response, next: NextFunction) => {
+  router.get("/:weddingId/schedules", requirePermission("operations:schedule:read"), async (req: Request, res: Response, next: NextFunction) => {
     try {
       const schedules = await opsService.getSchedules(req.params.weddingId);
       res.json({ success: true, data: schedules });
@@ -45,7 +49,7 @@ export function createDayOfOpsRouter(prisma: PrismaClient): Router {
   });
 
   // Create an activity schedule
-  router.post("/:weddingId/schedules", async (req: Request, res: Response, next: NextFunction) => {
+  router.post("/:weddingId/schedules", requirePermission("operations:schedule:manage"), validateCsrf(prisma), async (req: Request, res: Response, next: NextFunction) => {
     try {
       const validated = CreateScheduleSchema.parse(req.body);
       const schedule = await opsService.createSchedule(req.params.weddingId, validated);
@@ -56,7 +60,7 @@ export function createDayOfOpsRouter(prisma: PrismaClient): Router {
   });
 
   // Delete an activity schedule
-  router.delete("/:weddingId/schedules/:scheduleId", async (req: Request, res: Response, next: NextFunction) => {
+  router.delete("/:weddingId/schedules/:scheduleId", requirePermission("operations:schedule:manage"), validateCsrf(prisma), async (req: Request, res: Response, next: NextFunction) => {
     try {
       await opsService.deleteSchedule(req.params.scheduleId);
       res.json({ success: true, message: "Schedule deleted successfully" });
@@ -66,7 +70,7 @@ export function createDayOfOpsRouter(prisma: PrismaClient): Router {
   });
 
   // Get vendor arrival radar
-  router.get("/:weddingId/vendor-check-ins", async (req: Request, res: Response, next: NextFunction) => {
+  router.get("/:weddingId/vendor-check-ins", requirePermission("operations:radar:read"), async (req: Request, res: Response, next: NextFunction) => {
     try {
       const checkIns = await opsService.getVendorCheckIns(req.params.weddingId);
       res.json({ success: true, data: checkIns });
@@ -76,7 +80,7 @@ export function createDayOfOpsRouter(prisma: PrismaClient): Router {
   });
 
   // Log vendor arrival check-in
-  router.post("/:weddingId/vendor-check-ins/:id/check-in", async (req: Request, res: Response, next: NextFunction) => {
+  router.post("/:weddingId/vendor-check-ins/:id/check-in", requirePermission("operations:radar:checkin"), validateCsrf(prisma), async (req: Request, res: Response, next: NextFunction) => {
     try {
       const validated = CheckInVendorSchema.parse(req.body);
       const updated = await opsService.checkInVendor(req.params.id, validated.checkedInBy, validated.notes);
@@ -87,7 +91,7 @@ export function createDayOfOpsRouter(prisma: PrismaClient): Router {
   });
 
   // Get incidents
-  router.get("/:weddingId/incidents", async (req: Request, res: Response, next: NextFunction) => {
+  router.get("/:weddingId/incidents", requirePermission("operations:incident:read"), async (req: Request, res: Response, next: NextFunction) => {
     try {
       const incidents = await opsService.getIncidents(req.params.weddingId);
       res.json({ success: true, data: incidents });
@@ -97,7 +101,7 @@ export function createDayOfOpsRouter(prisma: PrismaClient): Router {
   });
 
   // Log an incident
-  router.post("/:weddingId/incidents", async (req: Request, res: Response, next: NextFunction) => {
+  router.post("/:weddingId/incidents", requirePermission("operations:incident:create"), validateCsrf(prisma), async (req: Request, res: Response, next: NextFunction) => {
     try {
       const validated = CreateIncidentSchema.parse(req.body);
       const incident = await opsService.createIncident(req.params.weddingId, validated);
@@ -108,7 +112,7 @@ export function createDayOfOpsRouter(prisma: PrismaClient): Router {
   });
 
   // Resolve an incident
-  router.patch("/:weddingId/incidents/:id/resolve", async (req: Request, res: Response, next: NextFunction) => {
+  router.patch("/:weddingId/incidents/:id/resolve", requirePermission("operations:incident:resolve"), validateCsrf(prisma), async (req: Request, res: Response, next: NextFunction) => {
     try {
       const validated = ResolveIncidentSchema.parse(req.body);
       const resolved = await opsService.resolveIncident(req.params.id, validated.resolutionNotes);
@@ -119,7 +123,7 @@ export function createDayOfOpsRouter(prisma: PrismaClient): Router {
   });
 
   // Get operations cockpit summary (radar, roster, incidents)
-  router.get("/:weddingId/cockpit", async (req: Request, res: Response, next: NextFunction) => {
+  router.get("/:weddingId/cockpit", requirePermission("operations:radar:read"), async (req: Request, res: Response, next: NextFunction) => {
     try {
       const cockpit = await opsService.getOperationsCockpit(req.params.weddingId);
       res.json({ success: true, data: cockpit });

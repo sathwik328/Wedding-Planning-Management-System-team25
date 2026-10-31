@@ -5,6 +5,7 @@ import { Badge } from '../common/Badge';
 import { SignatureCanvas } from './SignatureCanvas';
 import { parseStrictIndianCurrencyToPaise, formatPaiseToINR } from 'shared';
 import { CheckCircle2, FileSignature, Hash } from 'lucide-react';
+import { apiFetch } from '../../services/api';
 
 export interface AgreementModalProps {
   isOpen: boolean;
@@ -54,7 +55,7 @@ export const AgreementModal: React.FC<AgreementModalProps> = ({
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(`/api/agreements/by-couple/${coupleId}`);
+      const res = await apiFetch(`/api/agreements/by-couple/${coupleId}`);
       if (res.ok) {
         const json = await res.json();
         if (json.data) {
@@ -83,7 +84,7 @@ export const AgreementModal: React.FC<AgreementModalProps> = ({
 
     try {
       const agreedFeePaise = parseStrictIndianCurrencyToPaise(feeRupees);
-      const res = await fetch('/api/agreements', {
+      const res = await apiFetch('/api/agreements', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -123,7 +124,7 @@ export const AgreementModal: React.FC<AgreementModalProps> = ({
     setError(null);
 
     try {
-      const res = await fetch(`/api/agreements/${agreement.id}/sign`, {
+      const res = await apiFetch(`/api/agreements/${agreement.id}/sign`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

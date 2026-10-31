@@ -8,6 +8,7 @@ import { ConsultationModal } from './ConsultationModal';
 import { CoupleProfileModal } from './CoupleProfileModal';
 import { AgreementModal } from '../agreement/AgreementModal';
 import { formatPaiseCompact } from 'shared';
+import { apiFetch } from '../../services/api';
 import { 
   Users, 
   Calendar, 
@@ -87,7 +88,7 @@ export const CrmModule: React.FC = () => {
       const params = new URLSearchParams();
       if (statusFilter !== 'ALL') params.set('status', statusFilter);
       if (searchQuery.trim()) params.set('search', searchQuery.trim());
-      const res = await fetch(`/api/crm/enquiries?${params.toString()}`);
+      const res = await apiFetch(`/api/crm/enquiries?${params.toString()}`);
       const json = await res.json();
       return json.data || [];
     }
@@ -96,7 +97,7 @@ export const CrmModule: React.FC = () => {
   const { data: couples = [], isLoading: couplesLoading, refetch: refetchCouples } = useQuery<CoupleItem[]>({
     queryKey: ['couples'],
     queryFn: async () => {
-      const res = await fetch('/api/crm/couples');
+      const res = await apiFetch('/api/crm/couples');
       const json = await res.json();
       return json.data || [];
     }
@@ -105,7 +106,7 @@ export const CrmModule: React.FC = () => {
   // Mutation for updating status
   const updateStatusMutation = useMutation({
     mutationFn: async ({ id, status }: { id: string; status: string }) => {
-      const res = await fetch(`/api/crm/enquiries/${id}/status`, {
+      const res = await apiFetch(`/api/crm/enquiries/${id}/status`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status })

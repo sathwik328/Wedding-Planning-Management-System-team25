@@ -8,6 +8,9 @@ import { CrmModule } from './components/crm/CrmModule';
 import { WeddingModule } from './components/weddings/WeddingModule';
 import { OperationsDashboard } from './components/operations/OperationsDashboard';
 import { VendorDirectoryPage, FinanceLedgerPage, FounderAnalyticsPage } from './features';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { LoginPage } from './components/auth/LoginPage';
+import { apiFetch } from './services/api';
 import { 
   Building2, 
   CheckCircle2, 
@@ -17,7 +20,8 @@ import {
   ShieldCheck, 
   TrendingUp, 
   Workflow, 
-  RefreshCw 
+  RefreshCw,
+  Crown
 } from 'lucide-react';
 
 const queryClient = new QueryClient({
@@ -41,11 +45,12 @@ export const MainDashboard: React.FC = () => {
   const [currentTab, setCurrentTab] = useState('overview');
   const [health, setHealth] = useState<HealthStatus | null>(null);
   const [healthLoading, setHealthLoading] = useState(false);
+  const { hasPermission } = useAuth();
 
   const fetchHealth = async () => {
     setHealthLoading(true);
     try {
-      const res = await fetch('/api/health');
+      const res = await apiFetch('/api/health');
       if (res.ok) {
         const data = await res.json();
         setHealth(data);
@@ -302,30 +307,58 @@ export const MainDashboard: React.FC = () => {
       )}
 
       {/* Developer A CRM Module */}
-      {currentTab === 'crm' && <CrmModule />}
+      {currentTab === 'crm' && hasPermission('crm:enquiry:read') && <CrmModule />}
 
       {/* Developer A Weddings & Task Pipelines */}
-      {currentTab === 'weddings' && <WeddingModule />}
+      {currentTab === 'weddings' && hasPermission('weddings:wedding:read') && <WeddingModule />}
 
       {/* Developer A Day-of Operations */}
-      {currentTab === 'timeline' && <OperationsDashboard />}
+      {currentTab === 'timeline' && hasPermission('operations:schedule:read') && <OperationsDashboard />}
 
       {/* Developer B Vendor Directory & RFQs */}
-      {currentTab === 'vendors' && <VendorDirectoryPage />}
+      {currentTab === 'vendors' && hasPermission('procurement:vendor:read') && <VendorDirectoryPage />}
 
       {/* Developer B Financial Ledger */}
-      {currentTab === 'finance' && <FinanceLedgerPage />}
+      {currentTab === 'finance' && hasPermission('finance:ledger:read') && <FinanceLedgerPage />}
 
       {/* Developer B Founder Season Review */}
-      {currentTab === 'founder' && <FounderAnalyticsPage />}
+      {currentTab === 'founder' && hasPermission('analytics:treasury:read') && <FounderAnalyticsPage />}
     </AppShell>
   );
+};
+
+export const AuthenticatedApp: React.FC = () => {
+  const { isAuthenticated, isLoading } = useAuth();
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-[#FDFBF7] flex flex-col items-center justify-center p-4">
+        <div className="w-16 h-16 rounded-xl bg-[#5B1424] border-2 border-[#C5A059] flex items-center justify-center animate-pulse shadow-lg mb-4">
+          <Crown className="w-8 h-8 text-[#C5A059]" />
+        </div>
+        <h2 className="font-serif text-xl font-bold tracking-wider text-[#5B1424] uppercase">
+          The Royal Knot
+        </h2>
+        <p className="text-xs text-[#718096] tracking-widest uppercase mt-1">
+          Verifying workstation session...
+        </p>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return <LoginPage />;
+  }
+
+  return <MainDashboard />;
 };
 
 export const App: React.FC = () => {
   return (
     <QueryClientProvider client={queryClient}>
-      <MainDashboard />
+      <AuthProvider>
+        <AuthenticatedApp />
+      </AuthProvider>
     </QueryClientProvider>
   );
 };

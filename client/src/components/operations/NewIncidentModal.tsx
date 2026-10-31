@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Modal } from '../common/Modal';
 import { Button } from '../common/Button';
+import { apiFetch } from '../../services/api';
 
 export interface NewIncidentModalProps {
   isOpen: boolean;
@@ -28,7 +29,7 @@ export const NewIncidentModal: React.FC<NewIncidentModalProps> = ({
     setError(null);
 
     try {
-      const res = await fetch(`/api/operations/${weddingId}/incidents`, {
+      const res = await apiFetch(`/api/operations/${weddingId}/incidents`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

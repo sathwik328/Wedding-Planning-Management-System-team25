@@ -1,8 +1,9 @@
 import { Router, Request, Response, NextFunction } from "express";
 import { PrismaClient } from "@prisma/client";
 import { WeddingOpsService } from "../services/weddingOps.service.js";
-import { ConfirmWeddingSchema } from "shared";
+import { ConfirmWeddingSchema, hasPermission, UserRole } from "shared";
 import { z } from "zod";
+import { authenticate, requirePermission, validateCsrf } from "../middleware/auth.js";
 
 const UpdateTaskSchema = z.object({
   stage: z.enum(["TO_PLAN", "IN_PROGRESS", "BLOCKED", "DONE"]).optional(),
@@ -24,8 +25,11 @@ export function createWeddingOpsRouter(prisma: PrismaClient): Router {
   const router = Router();
   const weddingOpsService = new WeddingOpsService(prisma);
 
+  // All Wedding Operations routes require an authenticated session
+  router.use(authenticate(prisma));
+
   // List all weddings
-  router.get("/", async (_req: Request, res: Response, next: NextFunction) => {
+  router.get("/", requirePermission("weddings:wedding:read"), async (_req: Request, res: Response, next: NextFunction) => {
     try {
       const weddings = await weddingOpsService.listWeddings();
       res.json({ success: true, data: weddings });
@@ -35,7 +39,7 @@ export function createWeddingOpsRouter(prisma: PrismaClient): Router {
   });
 
   // Get team members for assignment
-  router.get("/team/members", async (_req: Request, res: Response, next: NextFunction) => {
+  router.get("/team/members", requirePermission("weddings:task:read"), async (_req: Request, res: Response, next: NextFunction) => {
     try {
       const users = await prisma.user.findMany({
         orderBy: { name: "asc" },
@@ -54,7 +58,7 @@ export function createWeddingOpsRouter(prisma: PrismaClient): Router {
   });
 
   // Get single wedding by ID
-  router.get("/:id", async (req: Request, res: Response, next: NextFunction) => {
+  router.get("/:id", requirePermission("weddings:wedding:read"), async (req: Request, res: Response, next: NextFunction) => {
     try {
       const wedding = await weddingOpsService.getWeddingById(req.params.id);
       if (!wedding) {
@@ -67,7 +71,7 @@ export function createWeddingOpsRouter(prisma: PrismaClient): Router {
   });
 
   // Create new wedding & auto-generate tasks
-  router.post("/", async (req: Request, res: Response, next: NextFunction) => {
+  router.post("/", requirePermission("weddings:wedding:create"), validateCsrf(prisma), async (req: Request, res: Response, next: NextFunction) => {
     try {
       const validated = ConfirmWeddingSchema.parse(req.body);
       const wedding = await weddingOpsService.createWedding(validated as any);
@@ -78,7 +82,7 @@ export function createWeddingOpsRouter(prisma: PrismaClient): Router {
   });
 
   // List tasks for wedding
-  router.get("/:id/tasks", async (req: Request, res: Response, next: NextFunction) => {
+  router.get("/:id/tasks", requirePermission("weddings:task:read"), async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { stage, priority, category, assignedToId } = req.query;
       const tasks = await weddingOpsService.listTasks(req.params.id, {
@@ -94,9 +98,18 @@ export function createWeddingOpsRouter(prisma: PrismaClient): Router {
   });
 
   // Update a task stage, priority, or assignment
-  router.patch("/:id/tasks/:taskId", async (req: Request, res: Response, next: NextFunction) => {
+  router.patch("/:id/tasks/:taskId", requirePermission("weddings:task:update"), validateCsrf(prisma), async (req: Request, res: Response, next: NextFunction) => {
     try {
       const validated = UpdateTaskSchema.parse(req.body);
+
+      // If assigning a task to someone, require task:assign permission
+      if (validated.assignedToId !== undefined) {
+        const userRole = req.user?.role as UserRole;
+        if (!hasPermission(userRole, "weddings:task:assign")) {
+          return res.status(403).json({ error: "Forbidden. Role lacks task assignment permission." });
+        }
+      }
+
       const updated = await weddingOpsService.updateTask(req.params.taskId, validated);
       res.json({ success: true, data: updated });
     } catch (err) {
@@ -105,7 +118,7 @@ export function createWeddingOpsRouter(prisma: PrismaClient): Router {
   });
 
   // Create custom bespoke task
-  router.post("/:id/tasks/custom", async (req: Request, res: Response, next: NextFunction) => {
+  router.post("/:id/tasks/custom", requirePermission("weddings:task:create"), validateCsrf(prisma), async (req: Request, res: Response, next: NextFunction) => {
     try {
       const validated = CreateCustomTaskSchema.parse(req.body);
       const task = await weddingOpsService.createCustomTask({
@@ -119,7 +132,7 @@ export function createWeddingOpsRouter(prisma: PrismaClient): Router {
   });
 
   // Trigger task verification & backfill
-  router.post("/:id/tasks/backfill", async (req: Request, res: Response, next: NextFunction) => {
+  router.post("/:id/tasks/backfill", requirePermission("weddings:task:update"), validateCsrf(prisma), async (req: Request, res: Response, next: NextFunction) => {
     try {
       const result = await weddingOpsService.triggerTaskBackfill(req.params.id);
       res.json({ success: true, data: result });

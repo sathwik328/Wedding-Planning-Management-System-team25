@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Modal } from '../common/Modal';
 import { Button } from '../common/Button';
+import { apiFetch } from '../../services/api';
 
 export interface TaskAssignmentModalProps {
   isOpen: boolean;
@@ -50,7 +51,7 @@ export const TaskAssignmentModal: React.FC<TaskAssignmentModalProps> = ({
     setError(null);
 
     try {
-      const res = await fetch(`/api/weddings/${weddingId}/tasks/${task.id}`, {
+      const res = await apiFetch(`/api/weddings/${weddingId}/tasks/${task.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

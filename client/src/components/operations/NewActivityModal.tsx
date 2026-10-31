@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Modal } from '../common/Modal';
 import { Button } from '../common/Button';
+import { apiFetch } from '../../services/api';
 
 export interface NewActivityModalProps {
   isOpen: boolean;
@@ -56,7 +57,7 @@ export const NewActivityModal: React.FC<NewActivityModalProps> = ({
       const fullStart = new Date(`${baseDate}T${startTime}:00`).toISOString();
       const fullEnd = new Date(`${baseDate}T${endTime}:00`).toISOString();
 
-      const res = await fetch(`/api/operations/${weddingId}/schedules`, {
+      const res = await apiFetch(`/api/operations/${weddingId}/schedules`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

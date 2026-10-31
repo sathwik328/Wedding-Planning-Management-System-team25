@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Modal } from '../common/Modal';
 import { Button } from '../common/Button';
+import { apiFetch } from '../../services/api';
 
 export interface CoupleProfileModalProps {
   isOpen: boolean;
@@ -38,7 +39,7 @@ export const CoupleProfileModal: React.FC<CoupleProfileModalProps> = ({
     setLoading(true);
 
     try {
-      const res = await fetch(`/api/crm/enquiries/${enquiryId}/convert-to-couple`, {
+      const res = await apiFetch(`/api/crm/enquiries/${enquiryId}/convert-to-couple`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

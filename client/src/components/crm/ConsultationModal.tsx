@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Modal } from '../common/Modal';
 import { Button } from '../common/Button';
+import { apiFetch } from '../../services/api';
 
 export interface ConsultationModalProps {
   isOpen: boolean;
@@ -32,7 +33,7 @@ export const ConsultationModal: React.FC<ConsultationModalProps> = ({
 
     try {
       const combinedDateTime = new Date(`${consultationDate}T${consultationTime}:00`).toISOString();
-      const res = await fetch(`/api/crm/enquiries/${enquiryId}/schedule-consultation`, {
+      const res = await apiFetch(`/api/crm/enquiries/${enquiryId}/schedule-consultation`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Modal } from '../common/Modal';
 import { Button } from '../common/Button';
 import { parseStrictIndianCurrencyToPaise, formatPaiseCompact } from 'shared';
+import { apiFetch } from '../../services/api';
 
 export interface EnquiryModalProps {
   isOpen: boolean;
@@ -42,7 +43,7 @@ export const EnquiryModal: React.FC<EnquiryModalProps> = ({
 
     try {
       const budgetCeilingPaise = parseStrictIndianCurrencyToPaise(budgetRupees);
-      const res = await fetch('/api/crm/enquiries', {
+      const res = await apiFetch('/api/crm/enquiries', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

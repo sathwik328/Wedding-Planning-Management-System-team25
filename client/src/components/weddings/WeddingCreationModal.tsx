@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Modal } from '../common/Modal';
 import { Button } from '../common/Button';
 import { parseStrictIndianCurrencyToPaise, formatPaiseCompact } from 'shared';
+import { apiFetch } from '../../services/api';
 
 export interface WeddingCreationModalProps {
   isOpen: boolean;
@@ -50,7 +51,7 @@ export const WeddingCreationModal: React.FC<WeddingCreationModalProps> = ({
 
     try {
       const totalBudgetPaise = parseStrictIndianCurrencyToPaise(totalBudgetRupees);
-      const res = await fetch('/api/weddings', {
+      const res = await apiFetch('/api/weddings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

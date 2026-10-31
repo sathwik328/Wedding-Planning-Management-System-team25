@@ -3,6 +3,7 @@ import { PrismaClient } from "@prisma/client";
 import { CrmService } from "../services/crm.service.js";
 import { CreateEnquirySchema, ScheduleConsultationSchema } from "shared";
 import { z } from "zod";
+import { authenticate, requirePermission, validateCsrf } from "../middleware/auth.js";
 
 const UpdateEnquiryStatusSchema = z.object({
   status: z.enum(["NEW", "CONSULTATION_SCHEDULED", "AGREEMENT_SENT", "CONVERTED", "LOST"])
@@ -20,8 +21,11 @@ export function createCrmRouter(prisma: PrismaClient): Router {
   const router = Router();
   const crmService = new CrmService(prisma);
 
+  // All CRM routes require authenticated session
+  router.use(authenticate(prisma));
+
   // List all enquiries with optional status or search query
-  router.get("/enquiries", async (req: Request, res: Response, next: NextFunction) => {
+  router.get("/enquiries", requirePermission("crm:enquiry:read"), async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { status, search } = req.query;
       const enquiries = await crmService.listEnquiries({
@@ -35,7 +39,7 @@ export function createCrmRouter(prisma: PrismaClient): Router {
   });
 
   // Get enquiry by ID
-  router.get("/enquiries/:id", async (req: Request, res: Response, next: NextFunction) => {
+  router.get("/enquiries/:id", requirePermission("crm:enquiry:read"), async (req: Request, res: Response, next: NextFunction) => {
     try {
       const enquiry = await crmService.getEnquiryById(req.params.id);
       if (!enquiry) {
@@ -48,7 +52,7 @@ export function createCrmRouter(prisma: PrismaClient): Router {
   });
 
   // Create new enquiry
-  router.post("/enquiries", async (req: Request, res: Response, next: NextFunction) => {
+  router.post("/enquiries", requirePermission("crm:enquiry:create"), validateCsrf(prisma), async (req: Request, res: Response, next: NextFunction) => {
     try {
       const validated = CreateEnquirySchema.parse(req.body);
       const enquiry = await crmService.createEnquiry(validated);
@@ -59,7 +63,7 @@ export function createCrmRouter(prisma: PrismaClient): Router {
   });
 
   // Schedule consultation on enquiry
-  router.post("/enquiries/:id/schedule-consultation", async (req: Request, res: Response, next: NextFunction) => {
+  router.post("/enquiries/:id/schedule-consultation", requirePermission("crm:enquiry:update"), validateCsrf(prisma), async (req: Request, res: Response, next: NextFunction) => {
     try {
       const validated = ScheduleConsultationSchema.parse(req.body);
       const updated = await crmService.scheduleConsultation(req.params.id, validated);
@@ -70,7 +74,7 @@ export function createCrmRouter(prisma: PrismaClient): Router {
   });
 
   // Update enquiry pipeline status
-  router.patch("/enquiries/:id/status", async (req: Request, res: Response, next: NextFunction) => {
+  router.patch("/enquiries/:id/status", requirePermission("crm:enquiry:update"), validateCsrf(prisma), async (req: Request, res: Response, next: NextFunction) => {
     try {
       const validated = UpdateEnquiryStatusSchema.parse(req.body);
       const updated = await crmService.updateEnquiryStatus(req.params.id, validated.status);
@@ -81,7 +85,7 @@ export function createCrmRouter(prisma: PrismaClient): Router {
   });
 
   // Convert enquiry to couple profile
-  router.post("/enquiries/:id/convert-to-couple", async (req: Request, res: Response, next: NextFunction) => {
+  router.post("/enquiries/:id/convert-to-couple", requirePermission("crm:couple:create"), validateCsrf(prisma), async (req: Request, res: Response, next: NextFunction) => {
     try {
       const validated = ConvertToCoupleSchema.parse(req.body);
       const couple = await crmService.convertToCouple(req.params.id, validated);
@@ -92,7 +96,7 @@ export function createCrmRouter(prisma: PrismaClient): Router {
   });
 
   // List all couples
-  router.get("/couples", async (_req: Request, res: Response, next: NextFunction) => {
+  router.get("/couples", requirePermission("crm:couple:read"), async (_req: Request, res: Response, next: NextFunction) => {
     try {
       const couples = await crmService.listCouples();
       res.json({ success: true, data: couples });
@@ -102,7 +106,7 @@ export function createCrmRouter(prisma: PrismaClient): Router {
   });
 
   // Get couple profile by ID
-  router.get("/couples/:id", async (req: Request, res: Response, next: NextFunction) => {
+  router.get("/couples/:id", requirePermission("crm:couple:read"), async (req: Request, res: Response, next: NextFunction) => {
     try {
       const couple = await crmService.getCoupleById(req.params.id);
       if (!couple) {

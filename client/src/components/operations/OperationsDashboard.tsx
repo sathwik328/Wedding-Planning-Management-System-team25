@@ -6,6 +6,7 @@ import { Button } from '../common/Button';
 import { NewActivityModal } from './NewActivityModal';
 import { NewIncidentModal } from './NewIncidentModal';
 import { ResolveIncidentModal } from './ResolveIncidentModal';
+import { apiFetch } from '../../services/api';
 import { 
   AlertTriangle, 
   CheckCircle2, 
@@ -90,7 +91,7 @@ export const OperationsDashboard: React.FC = () => {
   const { data: weddings = [] } = useQuery<any[]>({
     queryKey: ['weddings'],
     queryFn: async () => {
-      const res = await fetch('/api/weddings');
+      const res = await apiFetch('/api/weddings');
       const json = await res.json();
       return json.data || [];
     }
@@ -104,7 +105,7 @@ export const OperationsDashboard: React.FC = () => {
     queryKey: ['cockpit', activeWeddingId],
     queryFn: async () => {
       if (!activeWeddingId) return null;
-      const res = await fetch(`/api/operations/${activeWeddingId}/cockpit`);
+      const res = await apiFetch(`/api/operations/${activeWeddingId}/cockpit`);
       const json = await res.json();
       return json.data;
     },
@@ -116,7 +117,7 @@ export const OperationsDashboard: React.FC = () => {
     queryKey: ['schedules', activeWeddingId],
     queryFn: async () => {
       if (!activeWeddingId) return [];
-      const res = await fetch(`/api/operations/${activeWeddingId}/schedules`);
+      const res = await apiFetch(`/api/operations/${activeWeddingId}/schedules`);
       const json = await res.json();
       return json.data || [];
     },
@@ -128,7 +129,7 @@ export const OperationsDashboard: React.FC = () => {
     queryKey: ['vendorCheckIns', activeWeddingId],
     queryFn: async () => {
       if (!activeWeddingId) return [];
-      const res = await fetch(`/api/operations/${activeWeddingId}/vendor-check-ins`);
+      const res = await apiFetch(`/api/operations/${activeWeddingId}/vendor-check-ins`);
       const json = await res.json();
       return json.data || [];
     },
@@ -140,7 +141,7 @@ export const OperationsDashboard: React.FC = () => {
     queryKey: ['incidents', activeWeddingId],
     queryFn: async () => {
       if (!activeWeddingId) return [];
-      const res = await fetch(`/api/operations/${activeWeddingId}/incidents`);
+      const res = await apiFetch(`/api/operations/${activeWeddingId}/incidents`);
       const json = await res.json();
       return json.data || [];
     },
@@ -151,7 +152,7 @@ export const OperationsDashboard: React.FC = () => {
   const { data: teamMembers = [] } = useQuery<any[]>({
     queryKey: ['teamMembers'],
     queryFn: async () => {
-      const res = await fetch('/api/weddings/team/members');
+      const res = await apiFetch('/api/weddings/team/members');
       const json = await res.json();
       return json.data || [];
     }
@@ -161,7 +162,7 @@ export const OperationsDashboard: React.FC = () => {
   const checkInMutation = useMutation({
     mutationFn: async ({ id, checkedInBy }: { id: string; checkedInBy: string }) => {
       if (!activeWeddingId) return;
-      const res = await fetch(`/api/operations/${activeWeddingId}/vendor-check-ins/${id}/check-in`, {
+      const res = await apiFetch(`/api/operations/${activeWeddingId}/vendor-check-ins/${id}/check-in`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -181,7 +182,7 @@ export const OperationsDashboard: React.FC = () => {
   const deleteScheduleMutation = useMutation({
     mutationFn: async (scheduleId: string) => {
       if (!activeWeddingId) return;
-      await fetch(`/api/operations/${activeWeddingId}/schedules/${scheduleId}`, {
+      await apiFetch(`/api/operations/${activeWeddingId}/schedules/${scheduleId}`, {
         method: 'DELETE'
       });
     },

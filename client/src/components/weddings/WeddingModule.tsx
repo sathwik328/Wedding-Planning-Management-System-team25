@@ -7,6 +7,7 @@ import { WeddingCreationModal } from './WeddingCreationModal';
 import { TaskAssignmentModal } from './TaskAssignmentModal';
 import { CustomTaskModal } from './CustomTaskModal';
 import { formatPaiseCompact } from 'shared';
+import { apiFetch } from '../../services/api';
 import { 
   Calendar, 
   MapPin, 
@@ -77,7 +78,7 @@ export const WeddingModule: React.FC = () => {
   const { data: weddings = [] } = useQuery<WeddingSummary[]>({
     queryKey: ['weddings'],
     queryFn: async () => {
-      const res = await fetch('/api/weddings');
+      const res = await apiFetch('/api/weddings');
       const json = await res.json();
       return json.data || [];
     }
@@ -94,7 +95,7 @@ export const WeddingModule: React.FC = () => {
       const params = new URLSearchParams();
       if (stageFilter !== 'ALL') params.set('stage', stageFilter);
       if (categoryFilter !== 'ALL') params.set('category', categoryFilter);
-      const res = await fetch(`/api/weddings/${activeWeddingId}/tasks?${params.toString()}`);
+      const res = await apiFetch(`/api/weddings/${activeWeddingId}/tasks?${params.toString()}`);
       const json = await res.json();
       return json.data || [];
     },
@@ -104,7 +105,7 @@ export const WeddingModule: React.FC = () => {
   const { data: teamMembers = [] } = useQuery<TeamMember[]>({
     queryKey: ['teamMembers'],
     queryFn: async () => {
-      const res = await fetch('/api/weddings/team/members');
+      const res = await apiFetch('/api/weddings/team/members');
       const json = await res.json();
       return json.data || [];
     }
@@ -113,7 +114,7 @@ export const WeddingModule: React.FC = () => {
   const { data: couples = [] } = useQuery<any[]>({
     queryKey: ['couples'],
     queryFn: async () => {
-      const res = await fetch('/api/crm/couples');
+      const res = await apiFetch('/api/crm/couples');
       const json = await res.json();
       return json.data || [];
     }
@@ -123,7 +124,7 @@ export const WeddingModule: React.FC = () => {
   const updateTaskStageMutation = useMutation({
     mutationFn: async ({ taskId, stage }: { taskId: string; stage: string }) => {
       if (!activeWeddingId) return;
-      const res = await fetch(`/api/weddings/${activeWeddingId}/tasks/${taskId}`, {
+      const res = await apiFetch(`/api/weddings/${activeWeddingId}/tasks/${taskId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ stage })
@@ -140,7 +141,7 @@ export const WeddingModule: React.FC = () => {
   const backfillMutation = useMutation({
     mutationFn: async () => {
       if (!activeWeddingId) return;
-      const res = await fetch(`/api/weddings/${activeWeddingId}/tasks/backfill`, {
+      const res = await apiFetch(`/api/weddings/${activeWeddingId}/tasks/backfill`, {
         method: 'POST'
       });
       return res.json();

@@ -7,10 +7,12 @@ import {
   FileSpreadsheet, 
   ReceiptIndianRupee, 
   TrendingUp, 
-  Layers,
-  Database
+  LogOut
 } from 'lucide-react';
 import { Badge } from '../common/Badge';
+import { BadgeVariant } from '../../theme/tokens';
+import { useAuth } from '../../contexts/AuthContext';
+import { PermissionKey } from 'shared';
 
 export interface AppShellProps {
   currentTab: string;
@@ -18,20 +20,52 @@ export interface AppShellProps {
   children: React.ReactNode;
 }
 
+interface NavItem {
+  id: string;
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+  devBadge?: string;
+  requiredPermission?: PermissionKey;
+}
+
 export const AppShell: React.FC<AppShellProps> = ({
   currentTab,
   onSelectTab,
   children
 }) => {
-  const navigationItems = [
+  const { user, logout, hasPermission } = useAuth();
+
+  const allNavigationItems: NavItem[] = [
     { id: 'overview', label: 'Executive Overview', icon: Crown },
-    { id: 'crm', label: 'CRM & Consultations', icon: Users, devBadge: 'Dev A' },
-    { id: 'weddings', label: 'Weddings & Tasks', icon: Calendar, devBadge: 'Dev A' },
-    { id: 'timeline', label: 'Day-of Operations', icon: Clock, devBadge: 'Dev A' },
-    { id: 'vendors', label: 'Vendor Directory & RFQs', icon: FileSpreadsheet, devBadge: 'Dev B' },
-    { id: 'finance', label: 'Financial Ledger & Cash Flow', icon: ReceiptIndianRupee, devBadge: 'Dev B' },
-    { id: 'founder', label: 'Founder Season Review', icon: TrendingUp, devBadge: 'Dev B' }
+    { id: 'crm', label: 'CRM & Consultations', icon: Users, devBadge: 'Dev A', requiredPermission: 'crm:enquiry:read' },
+    { id: 'weddings', label: 'Weddings & Tasks', icon: Calendar, devBadge: 'Dev A', requiredPermission: 'weddings:wedding:read' },
+    { id: 'timeline', label: 'Day-of Operations', icon: Clock, devBadge: 'Dev A', requiredPermission: 'operations:schedule:read' },
+    { id: 'vendors', label: 'Vendor Directory & RFQs', icon: FileSpreadsheet, devBadge: 'Dev B', requiredPermission: 'procurement:vendor:read' },
+    { id: 'finance', label: 'Financial Ledger & Cash Flow', icon: ReceiptIndianRupee, devBadge: 'Dev B', requiredPermission: 'finance:ledger:read' },
+    { id: 'founder', label: 'Founder Season Review', icon: TrendingUp, devBadge: 'Dev B', requiredPermission: 'analytics:treasury:read' }
   ];
+
+  // Role-gated navigation tabs: filter based on permissions
+  const visibleNavigationItems = allNavigationItems.filter((item) => {
+    if (!item.requiredPermission) return true;
+    return hasPermission(item.requiredPermission);
+  });
+
+  const getRoleBadgeVariant = (role?: string): BadgeVariant => {
+    switch (role) {
+      case "FOUNDER":
+      case "ADMIN":
+        return "gold";
+      case "LEAD_PLANNER":
+        return "wine";
+      case "COORDINATOR":
+        return "info";
+      case "FINANCE_DIRECTOR":
+        return "success";
+      default:
+        return "neutral";
+    }
+  };
 
   return (
     <div className="min-h-screen flex flex-col bg-royal-ivory text-royal-charcoal">
@@ -47,7 +81,7 @@ export const AppShell: React.FC<AppShellProps> = ({
           </div>
           <div className="flex items-center gap-3">
             <span className="text-stone-300 font-mono text-[11px] hidden sm:inline">Prisma SQLite / BigInt Paise</span>
-            <Badge variant="gold" size="sm">Phase 1 Foundation</Badge>
+            <Badge variant="gold" size="sm">Phase 4 RBAC Active</Badge>
           </div>
         </div>
       </aside>
@@ -71,24 +105,39 @@ export const AppShell: React.FC<AppShellProps> = ({
               </div>
             </div>
 
-            {/* Quick Status Pill */}
-            <div className="hidden lg:flex items-center gap-4 text-xs text-[#718096]">
-              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#F7F4EE] border border-[#E7E2D8]">
-                <Database className="w-3.5 h-3.5 text-[#C5A059]" />
-                <span className="font-medium text-[#1E2229]">DB Ledger:</span>
-                <span className="text-emerald-700 font-semibold">Active & Audited</span>
-              </div>
-              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#F7F4EE] border border-[#E7E2D8]">
-                <Layers className="w-3.5 h-3.5 text-[#5B1424]" />
-                <span className="font-medium text-[#1E2229]">Workspaces:</span>
-                <span className="text-stone-700">Client / Server / Shared</span>
-              </div>
+            {/* User Profile & Logout Action */}
+            <div className="flex items-center gap-4">
+              {user && (
+                <div className="flex items-center gap-3 bg-[#F7F4EE] border border-[#E7E2D8] rounded-lg px-3 py-1.5">
+                  <div className="w-8 h-8 rounded-full bg-[#5B1424] text-[#C5A059] flex items-center justify-center font-bold text-xs border border-[#C5A059]">
+                    {user.name.charAt(0)}
+                  </div>
+                  <div className="flex flex-col text-left">
+                    <span className="text-xs font-semibold text-[#1E2229] leading-tight flex items-center gap-1">
+                      {user.name}
+                    </span>
+                    <span className="text-[10px] font-mono font-medium text-[#718096] uppercase">
+                      {user.role}
+                    </span>
+                  </div>
+                  <Badge variant={getRoleBadgeVariant(user.role)} size="sm">
+                    {user.role}
+                  </Badge>
+                  <button
+                    onClick={() => logout()}
+                    title="Sign Out"
+                    className="ml-2 text-stone-500 hover:text-red-700 transition-colors p-1 rounded hover:bg-stone-200 cursor-pointer"
+                  >
+                    <LogOut className="w-4 h-4" />
+                  </button>
+                </div>
+              )}
             </div>
           </div>
 
           {/* Navigation Bar */}
           <nav className="flex space-x-1 overflow-x-auto py-2 -mb-px border-t border-[#F7F4EE]">
-            {navigationItems.map((item) => {
+            {visibleNavigationItems.map((item) => {
               const Icon = item.icon;
               const isActive = currentTab === item.id;
               return (
@@ -134,9 +183,9 @@ export const AppShell: React.FC<AppShellProps> = ({
             <span>&copy; {new Date().getFullYear()} Rajputana Hospitality Management. Built for 2-Developer Distributed Hackathon.</span>
           </div>
           <div className="flex items-center gap-4 font-mono text-[11px]">
-            <span>Branch: <strong className="text-[#5B1424]">develop</strong></span>
+            <span>Branch: <strong className="text-[#5B1424]">feature/dev-a-crm-ops</strong></span>
             <span>|</span>
-            <span>Architecture: <strong className="text-[#1E2229]">Prisma + BigInt + Express + Vite</strong></span>
+            <span>Architecture: <strong className="text-[#1E2229]">Prisma + Scrypt + Express + Vite + RBAC</strong></span>
           </div>
         </div>
       </footer>

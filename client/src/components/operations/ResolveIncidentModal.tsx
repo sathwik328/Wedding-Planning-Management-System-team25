@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Modal } from '../common/Modal';
 import { Button } from '../common/Button';
+import { apiFetch } from '../../services/api';
 
 export interface ResolveIncidentModalProps {
   isOpen: boolean;
@@ -33,7 +34,7 @@ export const ResolveIncidentModal: React.FC<ResolveIncidentModalProps> = ({
     setError(null);
 
     try {
-      const res = await fetch(`/api/operations/${weddingId}/incidents/${incident.id}/resolve`, {
+      const res = await apiFetch(`/api/operations/${weddingId}/incidents/${incident.id}/resolve`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
