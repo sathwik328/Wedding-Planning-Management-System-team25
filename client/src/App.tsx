@@ -6,6 +6,7 @@ import { Badge } from './components/common/Badge';
 import { Button } from './components/common/Button';
 import { CrmModule } from './components/crm/CrmModule';
 import { WeddingModule } from './components/weddings/WeddingModule';
+import { OperationsDashboard } from './components/operations/OperationsDashboard';
 import { 
   Building2, 
   CheckCircle2, 
@@ -307,65 +308,7 @@ export const MainDashboard: React.FC = () => {
       {currentTab === 'weddings' && <WeddingModule />}
 
       {/* Developer A Day-of Operations */}
-      {currentTab === 'timeline' && (
-        <div className="space-y-6">
-          <div>
-            <h2 className="font-serif text-2xl font-bold text-[#5B1424]">Day-of Operations & Minute-by-Minute Timeline</h2>
-            <p className="text-xs text-[#718096]">Managed by Developer A • Vendor arrival radar & incident log</p>
-          </div>
-
-          <Card title="Live Vendor Arrival Radar — Umaid Bhawan Palace">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-              <div className="p-3 bg-emerald-50 border border-emerald-200 rounded">
-                <span className="text-[11px] font-semibold text-emerald-800 uppercase">On Schedule</span>
-                <div className="text-xl font-serif font-bold text-emerald-900 mt-1">14 Vendors</div>
-              </div>
-              <div className="p-3 bg-amber-50 border border-amber-200 rounded">
-                <span className="text-[11px] font-semibold text-amber-800 uppercase">Approaching (Next 60m)</span>
-                <div className="text-xl font-serif font-bold text-amber-900 mt-1">4 Vendors</div>
-              </div>
-              <div className="p-3 bg-rose-50 border border-rose-200 rounded">
-                <span className="text-[11px] font-semibold text-rose-800 uppercase">Delayed / Alert</span>
-                <div className="text-xl font-serif font-bold text-rose-900 mt-1">1 Vendor</div>
-              </div>
-              <div className="p-3 bg-stone-100 border border-stone-200 rounded">
-                <span className="text-[11px] font-semibold text-stone-700 uppercase">Unscheduled</span>
-                <div className="text-xl font-serif font-bold text-stone-900 mt-1">0 Vendors</div>
-              </div>
-            </div>
-
-            <div className="overflow-x-auto">
-              <table className="w-full text-xs text-left">
-                <thead className="bg-[#F7F4EE] text-[#1E2229] border-b border-[#E7E2D8]">
-                  <tr>
-                    <th className="px-4 py-2.5 font-semibold">Activity</th>
-                    <th className="px-4 py-2.5 font-semibold">Vendor & Category</th>
-                    <th className="px-4 py-2.5 font-semibold">Scheduled Arrival</th>
-                    <th className="px-4 py-2.5 font-semibold">Status</th>
-                    <th className="px-4 py-2.5 font-semibold text-right">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-[#E7E2D8]">
-                  <tr>
-                    <td className="px-4 py-3 font-medium">Baraat Royal Procession Setup</td>
-                    <td className="px-4 py-3">Jaipur Royal Band (Music / Brass)</td>
-                    <td className="px-4 py-3 font-mono">15:30 (Target: 16:30 Baraat)</td>
-                    <td className="px-4 py-3"><Badge variant="success" size="sm" dot>Checked In</Badge></td>
-                    <td className="px-4 py-3 text-right"><Button variant="ghost" size="sm">Log Check-in</Button></td>
-                  </tr>
-                  <tr>
-                    <td className="px-4 py-3 font-medium">Floral Varmala Stage Decor</td>
-                    <td className="px-4 py-3">Udaipur Artisan Florals (Decor)</td>
-                    <td className="px-4 py-3 font-mono">14:00 (Target: 17:00 Ceremony)</td>
-                    <td className="px-4 py-3"><Badge variant="danger" size="sm" dot>Delayed (+25m)</Badge></td>
-                    <td className="px-4 py-3 text-right"><Button variant="ghost" size="sm">Send Alert</Button></td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </Card>
-        </div>
-      )}
+      {currentTab === 'timeline' && <OperationsDashboard />}
 
       {/* Developer B Vendor Directory & RFQs */}
       {currentTab === 'vendors' && (
