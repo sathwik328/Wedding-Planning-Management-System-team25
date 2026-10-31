@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Modal } from '../../components/common/Modal';
 import { Button } from '../../components/common/Button';
 import { parseStrictIndianCurrencyToPaise, formatPaiseToINR } from 'shared';
+import { apiFetch } from '../../services/api';
 
 export interface RecordPaymentModalProps {
   isOpen: boolean;
@@ -28,7 +29,6 @@ export const RecordPaymentModal: React.FC<RecordPaymentModalProps> = ({
   const [paymentMethod, setPaymentMethod] = useState<'NEFT_RTGS' | 'CHEQUE' | 'BANK_TRANSFER' | 'CASH'>('NEFT_RTGS');
   const [vendorPaymentType, setVendorPaymentType] = useState<'ADVANCE' | 'FINAL_SETTLEMENT'>('ADVANCE');
   const [transactionReference, setTransactionReference] = useState('');
-  const [isCleared, setIsCleared] = useState(true);
   const [notes, setNotes] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -42,7 +42,7 @@ export const RecordPaymentModal: React.FC<RecordPaymentModalProps> = ({
 
     try {
       const amountPaise = parseStrictIndianCurrencyToPaise(amountRupees);
-      const status = isCleared ? 'CLEARED' : 'PENDING';
+      const status = 'PENDING';
 
       let endpoint = '';
       let body: any = {};
@@ -82,7 +82,7 @@ export const RecordPaymentModal: React.FC<RecordPaymentModalProps> = ({
         };
       }
 
-      const res = await fetch(endpoint, {
+      const res = await apiFetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body)
@@ -194,20 +194,10 @@ export const RecordPaymentModal: React.FC<RecordPaymentModalProps> = ({
           </div>
         </div>
 
-        <div className="p-3 bg-[#FDFBF7] border border-[#E7E2D8] rounded">
-          <label className="flex items-center gap-2 cursor-pointer text-xs">
-            <input
-              type="checkbox"
-              checked={isCleared}
-              onChange={(e) => setIsCleared(e.target.checked)}
-              className="rounded text-[#5B1424] focus:ring-[#C5A059]"
-            />
-            <span className="font-medium text-[#1E2229]">
-              Funds Cleared into Bank Account (Affects Net Cash Position)
-            </span>
-          </label>
-          <p className="text-[10px] text-[#718096] mt-1 pl-5">
-            Unchecking records as PENDING commitment only. Only CLEARED funds count towards audited cash inflows/outflows.
+        <div className="p-3 bg-[#FDFBF7] border border-[#E7E2D8] rounded text-xs">
+          <span className="font-semibold text-[#1E2229]">Governance Notice: Two-Step Payment Workflow</span>
+          <p className="text-[11px] text-[#718096] mt-0.5">
+            New payments are recorded with <strong className="text-amber-800">PENDING</strong> status. Formal cash clearance and approval must be executed separately by an authorized Finance Director or Founder.
           </p>
         </div>
 

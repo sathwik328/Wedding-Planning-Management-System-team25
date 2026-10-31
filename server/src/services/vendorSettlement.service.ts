@@ -24,6 +24,7 @@ export interface RecordVendorPaymentInput {
   status?: "PENDING" | "PROCESSING" | "CLEARED";
   clearedAt?: Date;
   notes?: string;
+  performedBy?: string;
 }
 
 export interface CreateAdditionalChargeInput {
@@ -256,6 +257,24 @@ export class VendorSettlementService {
           notes: data.notes
         }
       });
+
+      // Atomic creation of audit log to prevent inconsistent commitment
+      if (data.performedBy) {
+        await tx.auditLog.create({
+          data: {
+            entityName: "VendorPayment",
+            entityId: payment.id,
+            action: "RECORD_PAYMENT",
+            performedBy: data.performedBy,
+            detailsJson: JSON.stringify({
+              userId: data.performedBy,
+              amountPaise: payment.amountPaise.toString(),
+              vendorBillId: payment.vendorBillId,
+              transactionReference: payment.transactionReference
+            })
+          }
+        });
+      }
 
       // Recalculate cleared total on bill
       let clearedSumBig = 0n;

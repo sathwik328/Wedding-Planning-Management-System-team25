@@ -16,6 +16,8 @@ import {
   Eye
 } from 'lucide-react';
 import { VENDOR_CATEGORIES } from 'shared';
+import { useAuth } from '../../contexts/AuthContext';
+import { apiFetch } from '../../services/api';
 
 export interface VendorItem {
   id: string;
@@ -63,6 +65,11 @@ export interface WeddingSummaryItem {
 }
 
 export const VendorDirectoryPage: React.FC = () => {
+  const { hasPermission } = useAuth();
+  const canCreateVendor = hasPermission('procurement:vendor:create');
+  const canCreateRfq = hasPermission('procurement:rfq:create');
+  const canReadRfq = hasPermission('procurement:rfq:read');
+
   const [vendors, setVendors] = useState<VendorItem[]>([]);
   const [rfqGroups, setRfqGroups] = useState<RfqGroupItem[]>([]);
   const [weddings, setWeddings] = useState<WeddingSummaryItem[]>([]);
@@ -86,7 +93,7 @@ export const VendorDirectoryPage: React.FC = () => {
       if (searchQuery) params.append('search', searchQuery);
       if (params.toString()) url += `?${params.toString()}`;
 
-      const res = await fetch(url);
+      const res = await apiFetch(url);
       if (res.ok) {
         const data = await res.json();
         setVendors(data);
@@ -98,20 +105,19 @@ export const VendorDirectoryPage: React.FC = () => {
 
   const fetchWeddings = async () => {
     try {
-      const res = await fetch('/api/analytics/seasonal');
+      const res = await apiFetch('/api/weddings');
       if (res.ok) {
-        const data = await res.json();
-        if (data.weddings) {
-          const list: WeddingSummaryItem[] = data.weddings.map((w: any) => ({
-            id: w.weddingId,
-            title: w.weddingTitle,
-            targetGuestCount: w.targetGuestCount,
-            primaryCity: w.primaryCity
-          }));
-          setWeddings(list);
-          if (list.length > 0 && !selectedWeddingId) {
-            setSelectedWeddingId(list[0].id);
-          }
+        const json = await res.json();
+        const rawList = Array.isArray(json) ? json : json.data || [];
+        const list: WeddingSummaryItem[] = rawList.map((w: any) => ({
+          id: w.id,
+          title: w.title,
+          targetGuestCount: w.targetGuestCount || 400,
+          primaryCity: w.primaryCity || 'Jaipur'
+        }));
+        setWeddings(list);
+        if (list.length > 0 && !selectedWeddingId) {
+          setSelectedWeddingId(list[0].id);
         }
       }
     } catch (err) {
@@ -120,9 +126,9 @@ export const VendorDirectoryPage: React.FC = () => {
   };
 
   const fetchRfqGroups = async (weddingId: string) => {
-    if (!weddingId) return;
+    if (!weddingId || !canReadRfq) return;
     try {
-      const res = await fetch(`/api/rfq/groups/wedding/${weddingId}`);
+      const res = await apiFetch(`/api/rfq/groups/wedding/${weddingId}`);
       if (res.ok) {
         const data = await res.json();
         setRfqGroups(data);
@@ -141,16 +147,16 @@ export const VendorDirectoryPage: React.FC = () => {
   }, [categoryFilter, searchQuery]);
 
   useEffect(() => {
-    if (selectedWeddingId) {
+    if (selectedWeddingId && canReadRfq) {
       fetchRfqGroups(selectedWeddingId);
     }
-  }, [selectedWeddingId]);
+  }, [selectedWeddingId, canReadRfq]);
 
   const handleOpenComparison = async (groupId: string) => {
     setIsComparisonLoading(true);
     setIsComparisonOpen(true);
     try {
-      const res = await fetch(`/api/rfq/groups/${groupId}/comparison`);
+      const res = await apiFetch(`/api/rfq/groups/${groupId}/comparison`);
       if (res.ok) {
         const data = await res.json();
         setComparisonData(data);
@@ -163,7 +169,7 @@ export const VendorDirectoryPage: React.FC = () => {
   };
 
   const handleAwardVendor = async (groupId: string, quotationId: string) => {
-    const res = await fetch(`/api/rfq/groups/${groupId}/award`, {
+    const res = await apiFetch(`/api/rfq/groups/${groupId}/award`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ quotationId })
@@ -195,22 +201,26 @@ export const VendorDirectoryPage: React.FC = () => {
         </div>
 
         <div className="flex items-center gap-2">
-          <Button
-            variant="secondary"
-            size="sm"
-            leftIcon={<Plus className="w-4 h-4" />}
-            onClick={() => setIsCreateVendorOpen(true)}
-          >
-            Add Vendor
-          </Button>
-          <Button
-            variant="primary"
-            size="sm"
-            leftIcon={<FileSpreadsheet className="w-4 h-4" />}
-            onClick={() => setIsCreateRfqOpen(true)}
-          >
-            Create RFQ Group
-          </Button>
+          {canCreateVendor && (
+            <Button
+              variant="secondary"
+              size="sm"
+              leftIcon={<Plus className="w-4 h-4" />}
+              onClick={() => setIsCreateVendorOpen(true)}
+            >
+              Add Vendor
+            </Button>
+          )}
+          {canCreateRfq && (
+            <Button
+              variant="primary"
+              size="sm"
+              leftIcon={<FileSpreadsheet className="w-4 h-4" />}
+              onClick={() => setIsCreateRfqOpen(true)}
+            >
+              Create RFQ Group
+            </Button>
+          )}
         </div>
       </div>
 
@@ -244,14 +254,16 @@ export const VendorDirectoryPage: React.FC = () => {
             <p className="text-xs text-[#718096] max-w-md mx-auto mt-1 mb-4">
               Create an RFQ group to invite 3 luxury vendors and compare line-by-line menus, base costs, and extra-hour charges.
             </p>
-            <Button
-              variant="primary"
-              size="sm"
-              leftIcon={<Plus className="w-4 h-4" />}
-              onClick={() => setIsCreateRfqOpen(true)}
-            >
-              Dispatch First RFQ
-            </Button>
+            {canCreateRfq && (
+              <Button
+                variant="primary"
+                size="sm"
+                leftIcon={<Plus className="w-4 h-4" />}
+                onClick={() => setIsCreateRfqOpen(true)}
+              >
+                Dispatch First RFQ
+              </Button>
+            )}
           </div>
         ) : (
           <div className="overflow-x-auto">
