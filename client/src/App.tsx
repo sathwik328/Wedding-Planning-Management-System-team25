@@ -4,6 +4,7 @@ import { AppShell } from './components/layout/AppShell';
 import { Card } from './components/common/Card';
 import { Badge } from './components/common/Badge';
 import { Button } from './components/common/Button';
+import { CrmModule } from './components/crm/CrmModule';
 import { 
   Building2, 
   CheckCircle2, 
@@ -13,7 +14,6 @@ import {
   Lock, 
   ShieldCheck, 
   TrendingUp, 
-  UserCheck, 
   Workflow, 
   RefreshCw 
 } from 'lucide-react';
@@ -299,73 +299,8 @@ export const MainDashboard: React.FC = () => {
         </div>
       )}
 
-      {/* Developer A CRM Module Placeholder */}
-      {currentTab === 'crm' && (
-        <div className="space-y-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="font-serif text-2xl font-bold text-[#5B1424]">Client Relationship Management</h2>
-              <p className="text-xs text-[#718096]">Managed by Developer A • Enquiries, consultations & digital contract signatures</p>
-            </div>
-            <Button variant="primary" size="sm" leftIcon={<UserCheck className="w-4 h-4" />}>
-              Add Royal Inquiry
-            </Button>
-          </div>
-
-          <Card title="VIP Couple Pipelines (Jaipur & Udaipur Season)">
-            <div className="overflow-x-auto">
-              <table className="w-full text-xs text-left">
-                <thead className="bg-[#F7F4EE] text-[#1E2229] border-b border-[#E7E2D8]">
-                  <tr>
-                    <th className="px-4 py-3 font-semibold">Couple Names</th>
-                    <th className="px-4 py-3 font-semibold">Target Dates</th>
-                    <th className="px-4 py-3 font-semibold">Venue / City</th>
-                    <th className="px-4 py-3 font-semibold">Budget Range</th>
-                    <th className="px-4 py-3 font-semibold">Package Type</th>
-                    <th className="px-4 py-3 font-semibold">Status</th>
-                    <th className="px-4 py-3 font-semibold text-right">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-[#E7E2D8]">
-                  <tr className="hover:bg-amber-50/30">
-                    <td className="px-4 py-3 font-medium text-[#1E2229]">Rohan Singhania & Aanya Kapoor</td>
-                    <td className="px-4 py-3 text-[#718096]">Nov 18-20, 2026</td>
-                    <td className="px-4 py-3 text-[#1E2229]">Umaid Bhawan Palace, Jodhpur</td>
-                    <td className="px-4 py-3 font-mono font-medium">₹4,50,00,000</td>
-                    <td className="px-4 py-3"><Badge variant="wine" size="sm">Full Service</Badge></td>
-                    <td className="px-4 py-3"><Badge variant="success" size="sm">Agreement Signed</Badge></td>
-                    <td className="px-4 py-3 text-right">
-                      <Button variant="ghost" size="sm">View Dossier</Button>
-                    </td>
-                  </tr>
-                  <tr className="hover:bg-amber-50/30">
-                    <td className="px-4 py-3 font-medium text-[#1E2229]">Vikramaditya Rathore & Priyamvada Dev</td>
-                    <td className="px-4 py-3 text-[#718096]">Dec 05-08, 2026</td>
-                    <td className="px-4 py-3 text-[#1E2229]">City Palace, Udaipur</td>
-                    <td className="px-4 py-3 font-mono font-medium">₹6,20,00,000</td>
-                    <td className="px-4 py-3"><Badge variant="wine" size="sm">Full Service</Badge></td>
-                    <td className="px-4 py-3"><Badge variant="gold" size="sm">Consultation Done</Badge></td>
-                    <td className="px-4 py-3 text-right">
-                      <Button variant="ghost" size="sm">View Dossier</Button>
-                    </td>
-                  </tr>
-                  <tr className="hover:bg-amber-50/30">
-                    <td className="px-4 py-3 font-medium text-[#1E2229]">Kabir Mehta & Devika Birla</td>
-                    <td className="px-4 py-3 text-[#718096]">Jan 12-14, 2027</td>
-                    <td className="px-4 py-3 text-[#1E2229]">Rambagh Palace, Jaipur</td>
-                    <td className="px-4 py-3 font-mono font-medium">₹3,80,00,000</td>
-                    <td className="px-4 py-3"><Badge variant="neutral" size="sm">Partial Service</Badge></td>
-                    <td className="px-4 py-3"><Badge variant="warning" size="sm">Under Review</Badge></td>
-                    <td className="px-4 py-3 text-right">
-                      <Button variant="ghost" size="sm">View Dossier</Button>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </Card>
-        </div>
-      )}
+      {/* Developer A CRM Module */}
+      {currentTab === 'crm' && <CrmModule />}
 
       {/* Developer A Weddings & Task Pipelines */}
       {currentTab === 'weddings' && (
