@@ -7,11 +7,11 @@ import { Button } from './components/common/Button';
 import { CrmModule } from './components/crm/CrmModule';
 import { WeddingModule } from './components/weddings/WeddingModule';
 import { OperationsDashboard } from './components/operations/OperationsDashboard';
+import { VendorDirectoryPage, FinanceLedgerPage, FounderAnalyticsPage } from './features';
 import { 
   Building2, 
   CheckCircle2, 
   DollarSign, 
-  FileText, 
   GitBranch, 
   Lock, 
   ShieldCheck, 
@@ -311,203 +311,13 @@ export const MainDashboard: React.FC = () => {
       {currentTab === 'timeline' && <OperationsDashboard />}
 
       {/* Developer B Vendor Directory & RFQs */}
-      {currentTab === 'vendors' && (
-        <div className="space-y-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="font-serif text-2xl font-bold text-[#5B1424]">Vendor Directory & RFQ Management</h2>
-              <p className="text-xs text-[#718096]">Managed by Developer B • Quotation groups & 3-way comparison matrix</p>
-            </div>
-            <Button variant="primary" size="sm" leftIcon={<FileText className="w-4 h-4" />}>
-              Create RFQ Group
-            </Button>
-          </div>
-
-          <Card title="Active RFQ Quotation Groups (Jaipur / Udaipur)">
-            <div className="overflow-x-auto">
-              <table className="w-full text-xs text-left">
-                <thead className="bg-[#F7F4EE] text-[#1E2229] border-b border-[#E7E2D8]">
-                  <tr>
-                    <th className="px-4 py-2.5 font-semibold">RFQ Title</th>
-                    <th className="px-4 py-2.5 font-semibold">Category</th>
-                    <th className="px-4 py-2.5 font-semibold">Wedding</th>
-                    <th className="px-4 py-2.5 font-semibold">Quotes Received</th>
-                    <th className="px-4 py-2.5 font-semibold">Comparison Status</th>
-                    <th className="px-4 py-2.5 font-semibold text-right">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-[#E7E2D8]">
-                  <tr>
-                    <td className="px-4 py-3 font-medium">Umaid Bhawan Royal Mandap & Floral Ceiling</td>
-                    <td className="px-4 py-3"><Badge variant="gold" size="sm">Decor & Design</Badge></td>
-                    <td className="px-4 py-3">Singhania & Kapoor</td>
-                    <td className="px-4 py-3 font-mono">3 / 3 Complete</td>
-                    <td className="px-4 py-3"><Badge variant="success" size="sm">Ready to Select</Badge></td>
-                    <td className="px-4 py-3 text-right">
-                      <Button variant="secondary" size="sm">Compare Quotes</Button>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td className="px-4 py-3 font-medium">Rajasthani Traditional Thali Catering (450 Pax)</td>
-                    <td className="px-4 py-3"><Badge variant="gold" size="sm">Catering</Badge></td>
-                    <td className="px-4 py-3">Rathore & Dev</td>
-                    <td className="px-4 py-3 font-mono">2 / 3 Pending</td>
-                    <td className="px-4 py-3"><Badge variant="warning" size="sm">Awaiting 1 Vendor</Badge></td>
-                    <td className="px-4 py-3 text-right">
-                      <Button variant="ghost" size="sm">Follow Up</Button>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </Card>
-        </div>
-      )}
+      {currentTab === 'vendors' && <VendorDirectoryPage />}
 
       {/* Developer B Financial Ledger */}
-      {currentTab === 'finance' && (
-        <div className="space-y-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="font-serif text-2xl font-bold text-[#5B1424]">Audited Financial Ledger & Cash Flow</h2>
-              <p className="text-xs text-[#718096]">
-                Managed by Developer B • Strict BigInt Paise, 6 Anomaly Detectors & Concurrency Locks
-              </p>
-            </div>
-            <Button variant="gold" size="sm" leftIcon={<Lock className="w-4 h-4" />}>
-              Record Direct Payment
-            </Button>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <Card title="Actual Cash Flow Ledger" subtitle="Strictly CLEARED inflows & outflows">
-              <div className="space-y-3">
-                <div className="flex justify-between items-center text-xs pb-2 border-b border-[#E7E2D8]">
-                  <span className="text-[#718096]">Cleared Inflows (Client):</span>
-                  <span className="font-mono font-bold text-emerald-700">₹32,45,00,000</span>
-                </div>
-                <div className="flex justify-between items-center text-xs pb-2 border-b border-[#E7E2D8]">
-                  <span className="text-[#718096]">Cleared Outflows (Vendors):</span>
-                  <span className="font-mono font-bold text-rose-700">₹18,12,00,000</span>
-                </div>
-                <div className="flex justify-between items-center text-xs pb-2 border-b border-[#E7E2D8]">
-                  <span className="text-[#718096]">Direct Cleared Expenses:</span>
-                  <span className="font-mono font-bold text-rose-700">₹45,80,000</span>
-                </div>
-                <div className="flex justify-between items-center text-sm pt-1">
-                  <span className="font-semibold text-[#1E2229]">Net Cash Position:</span>
-                  <span className="font-mono font-bold text-[#5B1424] text-base">+₹13,87,20,000</span>
-                </div>
-              </div>
-            </Card>
-
-            <Card title="Accrual Profitability Engine" subtitle="Revenue earned vs committed costs">
-              <div className="space-y-3">
-                <div className="flex justify-between items-center text-xs pb-2 border-b border-[#E7E2D8]">
-                  <span className="text-[#718096]">Total Invoiced Revenue:</span>
-                  <span className="font-mono font-bold text-[#1E2229]">₹54,20,00,000</span>
-                </div>
-                <div className="flex justify-between items-center text-xs pb-2 border-b border-[#E7E2D8]">
-                  <span className="text-[#718096]">Vendor Bill Commitments:</span>
-                  <span className="font-mono font-bold text-[#1E2229]">₹38,90,00,000</span>
-                </div>
-                <div className="flex justify-between items-center text-xs pb-2 border-b border-[#E7E2D8]">
-                  <span className="text-[#718096]">Direct Pass-Through Cost:</span>
-                  <span className="font-mono font-bold text-[#718096]">₹82,50,000</span>
-                </div>
-                <div className="flex justify-between items-center text-sm pt-1">
-                  <span className="font-semibold text-[#1E2229]">Accrual Net Profit:</span>
-                  <span className="font-mono font-bold text-emerald-800 text-base">₹14,47,50,000 (26.7%)</span>
-                </div>
-              </div>
-            </Card>
-
-            <Card title="Ledger Anomaly Watchdog" subtitle="Automated 6-vector integrity checks">
-              <div className="space-y-2 text-xs">
-                <div className="p-2 bg-emerald-50 rounded flex justify-between items-center text-emerald-800">
-                  <span>Pass-Through Margin:</span>
-                  <span className="font-mono font-semibold">₹0.00 (Balanced)</span>
-                </div>
-                <div className="p-2 bg-emerald-50 rounded flex justify-between items-center text-emerald-800">
-                  <span>Direct Payment Caps:</span>
-                  <span className="font-mono font-semibold">No Overpayments</span>
-                </div>
-                <div className="p-2 bg-emerald-50 rounded flex justify-between items-center text-emerald-800">
-                  <span>Vendor Advance Ceiling:</span>
-                  <span className="font-mono font-semibold">100% Compliant</span>
-                </div>
-                <div className="p-2 bg-emerald-50 rounded flex justify-between items-center text-emerald-800">
-                  <span>Orphan Payment Audit:</span>
-                  <span className="font-mono font-semibold">0 Detected</span>
-                </div>
-              </div>
-            </Card>
-          </div>
-        </div>
-      )}
+      {currentTab === 'finance' && <FinanceLedgerPage />}
 
       {/* Developer B Founder Season Review */}
-      {currentTab === 'founder' && (
-        <div className="space-y-6">
-          <div>
-            <h2 className="font-serif text-2xl font-bold text-[#5B1424]">Founder Season Review & Strategic Analytics</h2>
-            <p className="text-xs text-[#718096]">Managed by Developer B • High-season luxury analytics & gross margin analysis</p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <Card title="Luxury Portfolio Season Metric">
-              <div className="space-y-2 text-xs">
-                <div className="flex justify-between">
-                  <span className="text-[#718096]">Season Weddings:</span>
-                  <span className="font-bold text-[#1E2229]">25 Destination Galas</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-[#718096]">Average Guest Count:</span>
-                  <span className="font-bold text-[#1E2229]">480 Royalty & Guests</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-[#718096]">Average Wedding Budget:</span>
-                  <span className="font-mono font-bold text-[#5B1424]">₹3,46,00,000</span>
-                </div>
-              </div>
-            </Card>
-
-            <Card title="Agency Margin Breakdown">
-              <div className="space-y-2 text-xs">
-                <div className="flex justify-between">
-                  <span className="text-[#718096]">Full-Service Weddings:</span>
-                  <span className="font-bold text-emerald-700">28.4% Net Margin</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-[#718096]">Partial-Service Weddings:</span>
-                  <span className="font-bold text-[#8C6F31]">22.1% Net Margin</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-[#718096]">Direct Pass-Throughs:</span>
-                  <span className="font-bold text-[#718096]">0.0% (Audited Exact)</span>
-                </div>
-              </div>
-            </Card>
-
-            <Card title="Vendor Reliability Rank">
-              <div className="space-y-2 text-xs">
-                <div className="flex justify-between">
-                  <span className="text-[#718096]">Top Decor Partner:</span>
-                  <span className="font-semibold text-[#1E2229]">Jaipur Heritage Florals</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-[#718096]">Top Catering Partner:</span>
-                  <span className="font-semibold text-[#1E2229]">Udaipur Royal Thali Co.</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-[#718096]">On-Time Delivery Rate:</span>
-                  <span className="font-bold text-emerald-700">97.8%</span>
-                </div>
-              </div>
-            </Card>
-          </div>
-        </div>
-      )}
+      {currentTab === 'founder' && <FounderAnalyticsPage />}
     </AppShell>
   );
 };

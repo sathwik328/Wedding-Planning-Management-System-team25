@@ -8,6 +8,7 @@ import { createCrmRouter } from "./routes/crm.routes.js";
 import { createAgreementRouter } from "./routes/agreement.routes.js";
 import { createWeddingOpsRouter } from "./routes/weddingOps.routes.js";
 import { createDayOfOpsRouter } from "./routes/dayOfOps.routes.js";
+import { createDevBRouter } from "./routes/devB.routes.js";
 
 export function createApp(prisma: PrismaClient): Express {
   const app = express();
@@ -33,6 +34,9 @@ export function createApp(prisma: PrismaClient): Express {
 
   // Developer A: Day-of Operations, Schedules, Radar, Incidents & Staff
   app.use("/api/operations", createDayOfOpsRouter(prisma));
+
+  // Developer B: Vendor Procurement, RFQs, Financial Ledger & Analytics
+  app.use("/api", createDevBRouter(prisma));
 
   // Centralized Error Handler
   app.use(errorHandler);
