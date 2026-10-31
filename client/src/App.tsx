@@ -5,6 +5,7 @@ import { Card } from './components/common/Card';
 import { Badge } from './components/common/Badge';
 import { Button } from './components/common/Button';
 import { CrmModule } from './components/crm/CrmModule';
+import { WeddingModule } from './components/weddings/WeddingModule';
 import { 
   Building2, 
   CheckCircle2, 
@@ -303,75 +304,7 @@ export const MainDashboard: React.FC = () => {
       {currentTab === 'crm' && <CrmModule />}
 
       {/* Developer A Weddings & Task Pipelines */}
-      {currentTab === 'weddings' && (
-        <div className="space-y-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="font-serif text-2xl font-bold text-[#5B1424]">Wedding Management & Automation</h2>
-              <p className="text-xs text-[#718096]">Managed by Developer A • 32 Full / 20 Partial milestone generation engine</p>
-            </div>
-            <Button variant="primary" size="sm" leftIcon={<Workflow className="w-4 h-4" />}>
-              Trigger Task Backfill
-            </Button>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <Card title="Full-Service Pipeline (32 Tasks)" subtitle="Complete 12-month luxury planning cycle">
-              <div className="space-y-2 text-xs">
-                <div className="p-2 bg-[#F7F4EE] rounded flex justify-between items-center">
-                  <span className="font-semibold text-[#1E2229]">Venue & Architecture</span>
-                  <Badge variant="gold" size="sm">Stage 1</Badge>
-                </div>
-                <div className="p-2 bg-[#F7F4EE] rounded flex justify-between items-center">
-                  <span className="font-semibold text-[#1E2229]">Master Decor & Production Design</span>
-                  <Badge variant="gold" size="sm">Stage 2</Badge>
-                </div>
-                <div className="p-2 bg-[#F7F4EE] rounded flex justify-between items-center">
-                  <span className="font-semibold text-[#1E2229]">Royal Hospitality & Logistics</span>
-                  <Badge variant="gold" size="sm">Stage 3</Badge>
-                </div>
-                <div className="p-2 bg-[#F7F4EE] rounded flex justify-between items-center">
-                  <span className="font-semibold text-[#1E2229]">Sangeet & Entertainment Curation</span>
-                  <Badge variant="gold" size="sm">Stage 4</Badge>
-                </div>
-              </div>
-            </Card>
-
-            <Card title="Partial-Service Pipeline (20 Tasks)" subtitle="Curated coordination & day-of execution">
-              <div className="space-y-2 text-xs">
-                <div className="p-2 bg-[#F7F4EE] rounded flex justify-between items-center">
-                  <span className="font-semibold text-[#1E2229]">Vendor Contract Review</span>
-                  <Badge variant="neutral" size="sm">Stage 1</Badge>
-                </div>
-                <div className="p-2 bg-[#F7F4EE] rounded flex justify-between items-center">
-                  <span className="font-semibold text-[#1E2229]">Timeline Synchronisation</span>
-                  <Badge variant="neutral" size="sm">Stage 2</Badge>
-                </div>
-                <div className="p-2 bg-[#F7F4EE] rounded flex justify-between items-center">
-                  <span className="font-semibold text-[#1E2229]">Day-of Production Oversight</span>
-                  <Badge variant="neutral" size="sm">Stage 3</Badge>
-                </div>
-                <div className="p-2 bg-[#F7F4EE] rounded flex justify-between items-center">
-                  <span className="font-semibold text-[#1E2229]">Post-Wedding Reconciliations</span>
-                  <Badge variant="neutral" size="sm">Stage 4</Badge>
-                </div>
-              </div>
-            </Card>
-
-            <Card title="Transaction Integrity Engine" subtitle="Prisma interactive retry-wrapper">
-              <div className="space-y-3 text-xs text-[#4A5568]">
-                <p>
-                  Task generation runs within a transactional lock. If an agreement is co-signed while a deposit clears,
-                  the unique composite key <code>(weddingId, templateKey)</code> catches duplicates via targeted retries.
-                </p>
-                <div className="p-2.5 bg-emerald-50 border border-emerald-200 rounded text-emerald-800">
-                  <strong>Verification Guard:</strong> If any backfill task fails to insert, the entire transaction rolls back.
-                </div>
-              </div>
-            </Card>
-          </div>
-        </div>
-      )}
+      {currentTab === 'weddings' && <WeddingModule />}
 
       {/* Developer A Day-of Operations */}
       {currentTab === 'timeline' && (

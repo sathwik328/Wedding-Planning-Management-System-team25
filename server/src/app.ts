@@ -6,6 +6,7 @@ import { errorHandler } from "./middleware/errorHandler.js";
 import { createHealthRouter } from "./routes/health.routes.js";
 import { createCrmRouter } from "./routes/crm.routes.js";
 import { createAgreementRouter } from "./routes/agreement.routes.js";
+import { createWeddingOpsRouter } from "./routes/weddingOps.routes.js";
 
 export function createApp(prisma: PrismaClient): Express {
   const app = express();
@@ -25,6 +26,9 @@ export function createApp(prisma: PrismaClient): Express {
 
   // Developer A: Service Agreements & Digital Signatures
   app.use("/api/agreements", createAgreementRouter(prisma));
+
+  // Developer A: Weddings & Automated Task Pipelines
+  app.use("/api/weddings", createWeddingOpsRouter(prisma));
 
   // Centralized Error Handler
   app.use(errorHandler);
