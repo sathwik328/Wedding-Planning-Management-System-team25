@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Modal } from '../../components/common/Modal';
 import { Button } from '../../components/common/Button';
 import { formatPaiseToINR } from 'shared';
+import { apiFetch } from '../../services/api';
 
 export interface BillReconciliationModalProps {
   isOpen: boolean;
@@ -40,7 +41,7 @@ export const BillReconciliationModal: React.FC<BillReconciliationModalProps> = (
     setIsSubmitting(true);
 
     try {
-      const res = await fetch(`/api/finance/bills/${bill.id}/reconcile`, {
+      const res = await apiFetch(`/api/finance/bills/${bill.id}/reconcile`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

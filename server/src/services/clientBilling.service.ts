@@ -29,6 +29,7 @@ export interface RecordClientPaymentInput {
   status?: "PENDING" | "PROCESSING" | "CLEARED";
   clearedAt?: Date;
   notes?: string;
+  performedBy?: string;
 }
 
 /**
@@ -208,6 +209,24 @@ export class ClientBillingService {
           notes: data.notes
         }
       });
+
+      // Atomic creation of audit log to prevent inconsistent commitment
+      if (data.performedBy) {
+        await tx.auditLog.create({
+          data: {
+            entityName: "ClientPayment",
+            entityId: payment.id,
+            action: "RECORD_PAYMENT",
+            performedBy: data.performedBy,
+            detailsJson: JSON.stringify({
+              userId: data.performedBy,
+              amountPaise: payment.amountPaise.toString(),
+              clientInvoiceId: payment.clientInvoiceId,
+              transactionReference: payment.transactionReference
+            })
+          }
+        });
+      }
 
       // Recalculate cleared total on invoice
       let clearedSumBig = 0n;

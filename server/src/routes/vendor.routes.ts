@@ -1,13 +1,17 @@
 import { Router, Request, Response } from "express";
 import { PrismaClient } from "@prisma/client";
 import { VendorProcurementService } from "../services/vendorProcurement.service.js";
+import { authenticate, requirePermission, validateCsrf } from "../middleware/index.js";
 
 export function createVendorRouter(prisma: PrismaClient): Router {
   const router = Router();
   const service = new VendorProcurementService(prisma);
 
+  // All vendor procurement routes require an authenticated session
+  router.use(authenticate(prisma));
+
   // GET /api/vendors - List all vendors with optional filters
-  router.get("/", async (req: Request, res: Response) => {
+  router.get("/", requirePermission("procurement:vendor:read"), async (req: Request, res: Response) => {
     try {
       const { category, city, search } = req.query;
       const vendors = await service.listVendors({
@@ -22,7 +26,7 @@ export function createVendorRouter(prisma: PrismaClient): Router {
   });
 
   // GET /api/vendors/:id - Get vendor details, quotations, and active wedding contracts
-  router.get("/:id", async (req: Request, res: Response) => {
+  router.get("/:id", requirePermission("procurement:vendor:read"), async (req: Request, res: Response) => {
     try {
       const vendor = await service.getVendorById(req.params.id);
       if (!vendor) {
@@ -35,7 +39,7 @@ export function createVendorRouter(prisma: PrismaClient): Router {
   });
 
   // POST /api/vendors - Register a new luxury vendor
-  router.post("/", async (req: Request, res: Response) => {
+  router.post("/", requirePermission("procurement:vendor:create"), validateCsrf(prisma), async (req: Request, res: Response) => {
     try {
       const { businessName, category, contactPerson, phone, email, city, notes } = req.body;
       if (!businessName || !category || !contactPerson || !phone || !email || !city) {
@@ -58,7 +62,7 @@ export function createVendorRouter(prisma: PrismaClient): Router {
   });
 
   // PUT /api/vendors/:id - Update vendor profile
-  router.put("/:id", async (req: Request, res: Response) => {
+  router.put("/:id", requirePermission("procurement:vendor:update"), validateCsrf(prisma), async (req: Request, res: Response) => {
     try {
       const vendor = await service.updateVendor(req.params.id, req.body);
       res.json(vendor);

@@ -1,20 +1,25 @@
 import { Router, Request, Response } from "express";
 import { PrismaClient } from "@prisma/client";
+import { hasPermission, UserRole } from "shared";
 import { ClientBillingService } from "../services/clientBilling.service.js";
 import { VendorSettlementService } from "../services/vendorSettlement.service.js";
 import { createDirectExpensePaymentWithRetry } from "../services/directExpensePayment.service.js";
 import { computeAuthoritativeWeddingLedger } from "../services/financialLedger.service.js";
+import { authenticate, requirePermission, validateCsrf } from "../middleware/index.js";
 
 export function createFinanceRouter(prisma: PrismaClient): Router {
   const router = Router();
   const billingService = new ClientBillingService(prisma);
   const settlementService = new VendorSettlementService(prisma);
 
+  // All finance routes require an authenticated session
+  router.use(authenticate(prisma));
+
   // -------------------------------------------------------------
   // CLIENT MILESTONES & INVOICES
   // -------------------------------------------------------------
 
-  router.get("/milestones/:weddingId", async (req: Request, res: Response) => {
+  router.get("/milestones/:weddingId", requirePermission("finance:milestone:read"), async (req: Request, res: Response) => {
     try {
       const milestones = await billingService.listMilestonesForWedding(req.params.weddingId);
       res.json(milestones);
@@ -23,7 +28,7 @@ export function createFinanceRouter(prisma: PrismaClient): Router {
     }
   });
 
-  router.post("/milestones", async (req: Request, res: Response) => {
+  router.post("/milestones", requirePermission("finance:milestone:create"), validateCsrf(prisma), async (req: Request, res: Response) => {
     try {
       const { weddingId, type, title, dueDate, targetAmountPaise } = req.body;
       if (!weddingId || !type || !title || !dueDate || !targetAmountPaise) {
@@ -43,7 +48,7 @@ export function createFinanceRouter(prisma: PrismaClient): Router {
     }
   });
 
-  router.get("/invoices/:weddingId", async (req: Request, res: Response) => {
+  router.get("/invoices/:weddingId", requirePermission("finance:invoice:read"), async (req: Request, res: Response) => {
     try {
       const invoices = await billingService.listInvoicesForWedding(req.params.weddingId);
       res.json(invoices);
@@ -52,7 +57,7 @@ export function createFinanceRouter(prisma: PrismaClient): Router {
     }
   });
 
-  router.get("/invoices/detail/:id", async (req: Request, res: Response) => {
+  router.get("/invoices/detail/:id", requirePermission("finance:invoice:read"), async (req: Request, res: Response) => {
     try {
       const invoice = await billingService.getInvoiceById(req.params.id);
       if (!invoice) {
@@ -64,7 +69,7 @@ export function createFinanceRouter(prisma: PrismaClient): Router {
     }
   });
 
-  router.post("/invoices", async (req: Request, res: Response) => {
+  router.post("/invoices", requirePermission("finance:invoice:create"), validateCsrf(prisma), async (req: Request, res: Response) => {
     try {
       const {
         weddingId,
@@ -91,7 +96,7 @@ export function createFinanceRouter(prisma: PrismaClient): Router {
         subtotalPaise: BigInt(subtotalPaise),
         taxPaise: taxPaise ? BigInt(taxPaise) : 0n,
         extraChargesPaise: extraChargesPaise ? BigInt(extraChargesPaise) : 0n,
-        totalAmountPaise: totalAmountPaise ? BigInt(totalAmountPaise) : undefined as any,
+        totalAmountPaise: totalAmountPaise ? BigInt(totalAmountPaise) : (undefined as any),
         milestoneIds,
         additionalChargeIds
       });
@@ -101,33 +106,184 @@ export function createFinanceRouter(prisma: PrismaClient): Router {
     }
   });
 
-  router.post("/client-payments", async (req: Request, res: Response) => {
+  // Client payment recording - forces status to PENDING and registers creation audit log atomically
+  router.post("/client-payments", requirePermission("finance:payment:record"), validateCsrf(prisma), async (req: Request, res: Response) => {
     try {
-      const { clientInvoiceId, amountPaise, paymentMethod, transactionReference, status, notes } =
-        req.body;
+      const { clientInvoiceId, amountPaise, paymentMethod, transactionReference, notes } = req.body;
 
       if (!clientInvoiceId || !amountPaise || !paymentMethod || !transactionReference) {
         return res.status(400).json({ error: "Missing required payment fields" });
       }
 
+      // Financial Security Fix: New payments MUST begin as PENDING. Reject or override injected CLEARED status.
+      // Payment creation and its creation audit record are committed atomically inside the service transaction.
       const payment = await billingService.recordClientPayment({
         clientInvoiceId,
         amountPaise: BigInt(amountPaise),
         paymentMethod,
         transactionReference,
-        status,
-        notes
+        status: "PENDING",
+        notes,
+        performedBy: req.user!.id
       });
+
       res.status(201).json(payment);
     } catch (err: any) {
       res.status(400).json({ error: err.message || "Failed to record client payment" });
     }
   });
 
-  router.put("/client-payments/:id/clear", async (req: Request, res: Response) => {
+  // Client payment clearance - requires approval permission, fail-closed audit verification, and atomic state transition
+  router.put("/client-payments/:id/clear", requirePermission("finance:payment:approve"), validateCsrf(prisma), async (req: Request, res: Response) => {
     try {
-      const payment = await billingService.markPaymentCleared(req.params.id);
-      res.json(payment);
+      const paymentId = req.params.id;
+
+      const result = await prisma.$transaction(async (tx) => {
+        // 1. Check payment existence
+        const payment = await tx.clientPayment.findUnique({
+          where: { id: paymentId },
+          include: {
+            clientInvoice: {
+              include: {
+                payments: true,
+                milestones: true
+              }
+            }
+          }
+        });
+
+        if (!payment) {
+          return { errorStatus: 404, errorMessage: `Client payment "${paymentId}" not found` };
+        }
+
+        // 2. Reject if payment is not PENDING
+        if (payment.status !== "PENDING") {
+          return {
+            errorStatus: 400,
+            errorMessage: `Payment cannot be cleared: current status is "${payment.status}" (must be PENDING).`
+          };
+        }
+
+        // 3. Separation of Duties: Check creation audit record (Fail-Closed)
+        const recordLog = await tx.auditLog.findFirst({
+          where: {
+            entityName: "ClientPayment",
+            entityId: paymentId,
+            action: "RECORD_PAYMENT"
+          }
+        });
+
+        // Fail-closed: Creation audit record must exist with creator attribution
+        if (!recordLog || !recordLog.performedBy) {
+          return {
+            errorStatus: 403,
+            errorMessage: "Approval rejected: Missing or unverifiable creation audit record. Creator attribution cannot be established."
+          };
+        }
+
+        // Verify audit record is associated with the exact payment being approved
+        if (recordLog.entityId !== paymentId) {
+          return {
+            errorStatus: 403,
+            errorMessage: "Approval rejected: Audit record entity mismatch."
+          };
+        }
+
+        // Reject if creator is the approver
+        if (recordLog.performedBy === req.user!.id) {
+          return {
+            errorStatus: 403,
+            errorMessage: "Separation of duties violation: Payment creator cannot approve their own payment."
+          };
+        }
+
+        // 4. Atomic conditional update: only transitions if current status is PENDING
+        const updateResult = await tx.clientPayment.updateMany({
+          where: {
+            id: paymentId,
+            status: "PENDING"
+          },
+          data: {
+            status: "CLEARED",
+            clearedAt: new Date()
+          }
+        });
+
+        if (updateResult.count === 0) {
+          return {
+            errorStatus: 400,
+            errorMessage: "Payment is already cleared or no longer in PENDING status."
+          };
+        }
+
+        // 5. Recalculate invoice cleared sum and update invoice/milestones
+        const invoice = payment.clientInvoice;
+        let clearedSumBig = 0n;
+        for (const p of invoice.payments) {
+          if (p.id === paymentId) {
+            clearedSumBig += payment.amountPaise;
+          } else if (p.status === "CLEARED") {
+            clearedSumBig += p.amountPaise;
+          }
+        }
+
+        let newInvoiceStatus = invoice.status;
+        if (clearedSumBig >= invoice.totalAmountPaise) {
+          newInvoiceStatus = "PAID";
+        } else if (clearedSumBig > 0n) {
+          newInvoiceStatus = "PARTIALLY_PAID";
+        }
+
+        if (newInvoiceStatus !== invoice.status) {
+          await tx.clientInvoice.update({
+            where: { id: invoice.id },
+            data: { status: newInvoiceStatus }
+          });
+
+          if (newInvoiceStatus === "PAID" && invoice.milestones.length > 0) {
+            for (const m of invoice.milestones) {
+              await tx.paymentMilestone.update({
+                where: { id: m.milestoneId },
+                data: { status: "PAID" }
+              });
+            }
+          } else if (newInvoiceStatus === "PARTIALLY_PAID" && invoice.milestones.length > 0) {
+            for (const m of invoice.milestones) {
+              await tx.paymentMilestone.update({
+                where: { id: m.milestoneId },
+                data: { status: "PARTIALLY_PAID" }
+              });
+            }
+          }
+        }
+
+        // 6. Audit approval log identifying the approving user inside the transaction
+        await tx.auditLog.create({
+          data: {
+            entityName: "ClientPayment",
+            entityId: paymentId,
+            action: "APPROVE_PAYMENT",
+            performedBy: req.user!.id,
+            detailsJson: JSON.stringify({
+              approvedBy: req.user!.id,
+              approvedByEmail: req.user!.email,
+              clearedAt: new Date().toISOString()
+            })
+          }
+        });
+
+        const updatedPayment = await tx.clientPayment.findUnique({
+          where: { id: paymentId }
+        });
+
+        return { payment: updatedPayment };
+      });
+
+      if (result.errorStatus) {
+        return res.status(result.errorStatus).json({ error: result.errorMessage });
+      }
+
+      res.json(result.payment);
     } catch (err: any) {
       res.status(400).json({ error: err.message || "Failed to mark payment cleared" });
     }
@@ -137,7 +293,7 @@ export function createFinanceRouter(prisma: PrismaClient): Router {
   // VENDOR BILLS & SETTLEMENT PAYMENTS
   // -------------------------------------------------------------
 
-  router.get("/bills/:weddingId", async (req: Request, res: Response) => {
+  router.get("/bills/:weddingId", requirePermission("finance:vendor_bill:read"), async (req: Request, res: Response) => {
     try {
       const bills = await settlementService.listBillsForWedding(req.params.weddingId);
       res.json(bills);
@@ -146,7 +302,7 @@ export function createFinanceRouter(prisma: PrismaClient): Router {
     }
   });
 
-  router.get("/bills/detail/:id", async (req: Request, res: Response) => {
+  router.get("/bills/detail/:id", requirePermission("finance:vendor_bill:read"), async (req: Request, res: Response) => {
     try {
       const bill = await settlementService.getBillById(req.params.id);
       if (!bill) {
@@ -158,7 +314,7 @@ export function createFinanceRouter(prisma: PrismaClient): Router {
     }
   });
 
-  router.post("/bills", async (req: Request, res: Response) => {
+  router.post("/bills", requirePermission("finance:vendor_bill:create"), validateCsrf(prisma), async (req: Request, res: Response) => {
     try {
       const {
         weddingVendorId,
@@ -187,7 +343,7 @@ export function createFinanceRouter(prisma: PrismaClient): Router {
     }
   });
 
-  router.post("/bills/:id/reconcile", async (req: Request, res: Response) => {
+  router.post("/bills/:id/reconcile", requirePermission("finance:vendor_bill:reconcile"), validateCsrf(prisma), async (req: Request, res: Response) => {
     try {
       const { varianceReason, reconciliationNotes } = req.body;
       const summary = await settlementService.reconcileBill({
@@ -201,7 +357,8 @@ export function createFinanceRouter(prisma: PrismaClient): Router {
     }
   });
 
-  router.post("/vendor-payments", async (req: Request, res: Response) => {
+  // Vendor payment recording - forces status to PENDING and registers creation audit log atomically
+  router.post("/vendor-payments", requirePermission("finance:vendor_payment:record"), validateCsrf(prisma), async (req: Request, res: Response) => {
     try {
       const {
         vendorBillId,
@@ -209,7 +366,6 @@ export function createFinanceRouter(prisma: PrismaClient): Router {
         amountPaise,
         paymentMethod,
         transactionReference,
-        status,
         notes
       } = req.body;
 
@@ -217,35 +373,162 @@ export function createFinanceRouter(prisma: PrismaClient): Router {
         return res.status(400).json({ error: "Missing required vendor payment fields" });
       }
 
+      // Financial Security Fix: New vendor payments MUST begin as PENDING
+      // Payment creation and its creation audit record are committed atomically inside the service transaction.
       const payment = await settlementService.recordVendorPayment({
         vendorBillId,
         paymentType,
         amountPaise: BigInt(amountPaise),
         paymentMethod,
         transactionReference,
-        status,
-        notes
+        status: "PENDING",
+        notes,
+        performedBy: req.user!.id
       });
+
       res.status(201).json(payment);
     } catch (err: any) {
       res.status(400).json({ error: err.message || "Failed to record vendor payment" });
     }
   });
 
-  router.put("/vendor-payments/:id/clear", async (req: Request, res: Response) => {
+  // Vendor payment clearance - requires approval permission, fail-closed audit verification, and atomic state transition
+  router.put("/vendor-payments/:id/clear", requirePermission("finance:vendor_payment:approve"), validateCsrf(prisma), async (req: Request, res: Response) => {
     try {
-      const payment = await settlementService.markVendorPaymentCleared(req.params.id);
-      res.json(payment);
+      const paymentId = req.params.id;
+
+      const result = await prisma.$transaction(async (tx) => {
+        // 1. Check payment existence
+        const payment = await tx.vendorPayment.findUnique({
+          where: { id: paymentId },
+          include: {
+            vendorBill: {
+              include: {
+                payments: true
+              }
+            }
+          }
+        });
+
+        if (!payment) {
+          return { errorStatus: 404, errorMessage: `Vendor payment "${paymentId}" not found` };
+        }
+
+        // 2. Reject if payment is not PENDING
+        if (payment.status !== "PENDING") {
+          return {
+            errorStatus: 400,
+            errorMessage: `Vendor payment cannot be cleared: current status is "${payment.status}" (must be PENDING).`
+          };
+        }
+
+        // 3. Separation of Duties: Check creation audit record (Fail-Closed)
+        const recordLog = await tx.auditLog.findFirst({
+          where: {
+            entityName: "VendorPayment",
+            entityId: paymentId,
+            action: "RECORD_PAYMENT"
+          }
+        });
+
+        // Fail-closed: Creation audit record must exist with creator attribution
+        if (!recordLog || !recordLog.performedBy) {
+          return {
+            errorStatus: 403,
+            errorMessage: "Approval rejected: Missing or unverifiable creation audit record. Creator attribution cannot be established."
+          };
+        }
+
+        // Verify audit record is associated with the exact payment being approved
+        if (recordLog.entityId !== paymentId) {
+          return {
+            errorStatus: 403,
+            errorMessage: "Approval rejected: Audit record entity mismatch."
+          };
+        }
+
+        // Reject if creator is the approver
+        if (recordLog.performedBy === req.user!.id) {
+          return {
+            errorStatus: 403,
+            errorMessage: "Separation of duties violation: Vendor payment creator cannot approve their own payment."
+          };
+        }
+
+        // 4. Atomic conditional update: only transitions if current status is PENDING
+        const updateResult = await tx.vendorPayment.updateMany({
+          where: {
+            id: paymentId,
+            status: "PENDING"
+          },
+          data: {
+            status: "CLEARED",
+            clearedAt: new Date()
+          }
+        });
+
+        if (updateResult.count === 0) {
+          return {
+            errorStatus: 400,
+            errorMessage: "Vendor payment is already cleared or no longer in PENDING status."
+          };
+        }
+
+        // 5. Recalculate cleared total on bill and update bill status if paid
+        const bill = payment.vendorBill;
+        let clearedSumBig = 0n;
+        for (const p of bill.payments) {
+          if (p.id === paymentId) {
+            clearedSumBig += payment.amountPaise;
+          } else if (p.status === "CLEARED") {
+            clearedSumBig += p.amountPaise;
+          }
+        }
+
+        if (clearedSumBig >= bill.totalBilledPaise && bill.status !== "PAID") {
+          await tx.vendorBill.update({
+            where: { id: bill.id },
+            data: { status: "PAID" }
+          });
+        }
+
+        // 6. Audit approval log identifying the approving user inside the transaction
+        await tx.auditLog.create({
+          data: {
+            entityName: "VendorPayment",
+            entityId: paymentId,
+            action: "APPROVE_PAYMENT",
+            performedBy: req.user!.id,
+            detailsJson: JSON.stringify({
+              approvedBy: req.user!.id,
+              approvedByEmail: req.user!.email,
+              clearedAt: new Date().toISOString()
+            })
+          }
+        });
+
+        const updatedPayment = await tx.vendorPayment.findUnique({
+          where: { id: paymentId }
+        });
+
+        return { payment: updatedPayment };
+      });
+
+      if (result.errorStatus) {
+        return res.status(result.errorStatus).json({ error: result.errorMessage });
+      }
+
+      res.json(result.payment);
     } catch (err: any) {
       res.status(400).json({ error: err.message || "Failed to mark vendor payment cleared" });
     }
   });
 
   // -------------------------------------------------------------
-  // ADDITIONAL CHARGES & DIRECT PAYMENTS
+  // ADDITIONAL CHARGES & DIRECT EXPENSE PAYMENTS
   // -------------------------------------------------------------
 
-  router.get("/charges/:weddingId", async (req: Request, res: Response) => {
+  router.get("/charges/:weddingId", requirePermission("finance:vendor_bill:read"), async (req: Request, res: Response) => {
     try {
       const charges = await settlementService.listAdditionalChargesForWedding(
         req.params.weddingId
@@ -256,7 +539,7 @@ export function createFinanceRouter(prisma: PrismaClient): Router {
     }
   });
 
-  router.post("/charges", async (req: Request, res: Response) => {
+  router.post("/charges", requirePermission("finance:vendor_bill:create"), validateCsrf(prisma), async (req: Request, res: Response) => {
     try {
       const {
         weddingId,
@@ -294,7 +577,7 @@ export function createFinanceRouter(prisma: PrismaClient): Router {
   });
 
   // Direct Expense Payment with Concurrency Lock & Retry Engine
-  router.post("/direct-payments", async (req: Request, res: Response) => {
+  router.post("/direct-payments", requirePermission("finance:direct_expense:pay"), validateCsrf(prisma), async (req: Request, res: Response) => {
     try {
       const {
         weddingId,
@@ -326,13 +609,24 @@ export function createFinanceRouter(prisma: PrismaClient): Router {
   });
 
   // -------------------------------------------------------------
-  // AUTHORITATIVE FINANCIAL LEDGER
+  // AUTHORITATIVE FINANCIAL LEDGER & ANOMALY FILTERING
   // -------------------------------------------------------------
 
-  router.get("/ledger/:weddingId", async (req: Request, res: Response) => {
+  router.get("/ledger/:weddingId", requirePermission("finance:ledger:read"), async (req: Request, res: Response) => {
     try {
       const report = await computeAuthoritativeWeddingLedger(prisma, req.params.weddingId);
-      res.json(report);
+
+      // Financial Security Fix: Users with ordinary ledger read permission must not automatically receive internal anomaly information.
+      // Only users with dedicated 'finance:anomalies:read' permission receive auditAnomalies.
+      const userRole = req.user?.role as UserRole;
+      const canViewAnomalies = userRole ? hasPermission(userRole, "finance:anomalies:read") : false;
+
+      const sanitizedReport = {
+        ...report,
+        auditAnomalies: canViewAnomalies ? report.auditAnomalies : []
+      };
+
+      res.json(sanitizedReport);
     } catch (err: any) {
       res.status(500).json({ error: err.message || "Failed to compute ledger" });
     }

@@ -12,6 +12,8 @@ import {
   ArrowDownRight
 } from 'lucide-react';
 import { formatPaiseToINR } from 'shared';
+import { useAuth } from '../../contexts/AuthContext';
+import { apiFetch } from '../../services/api';
 
 export interface FinanceWeddingSummaryItem {
   id: string;
@@ -56,6 +58,14 @@ export interface AuthoritativeLedgerReport {
 }
 
 export const FinanceLedgerPage: React.FC = () => {
+  const { hasPermission } = useAuth();
+  const canRecordClientPayment = hasPermission('finance:payment:record');
+  const canApproveClientPayment = hasPermission('finance:payment:approve');
+  const canRecordVendorPayment = hasPermission('finance:vendor_payment:record');
+  const canApproveVendorPayment = hasPermission('finance:vendor_payment:approve');
+  const canReconcileVendorBill = hasPermission('finance:vendor_bill:reconcile');
+  const canViewAnomalies = hasPermission('finance:anomalies:read');
+
   const [weddings, setWeddings] = useState<FinanceWeddingSummaryItem[]>([]);
   const [selectedWeddingId, setSelectedWeddingId] = useState<string>('');
 
@@ -86,21 +96,52 @@ export const FinanceLedgerPage: React.FC = () => {
     bill: null
   });
 
+  const handleApproveClientPayment = async (paymentId: string) => {
+    try {
+      const res = await apiFetch(`/api/finance/client-payments/${paymentId}/clear`, {
+        method: 'PUT'
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        alert(data.error || 'Failed to approve client payment');
+        return;
+      }
+      if (selectedWeddingId) fetchWeddingFinancials(selectedWeddingId);
+    } catch (err: any) {
+      alert(err.message || 'Network error');
+    }
+  };
+
+  const handleApproveVendorPayment = async (paymentId: string) => {
+    try {
+      const res = await apiFetch(`/api/finance/vendor-payments/${paymentId}/clear`, {
+        method: 'PUT'
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        alert(data.error || 'Failed to approve vendor payment');
+        return;
+      }
+      if (selectedWeddingId) fetchWeddingFinancials(selectedWeddingId);
+    } catch (err: any) {
+      alert(err.message || 'Network error');
+    }
+  };
+
   const fetchWeddings = async () => {
     try {
-      const res = await fetch('/api/analytics/seasonal');
+      const res = await apiFetch('/api/weddings');
       if (res.ok) {
-        const data = await res.json();
-        if (data.weddings) {
-          const list: FinanceWeddingSummaryItem[] = data.weddings.map((w: any) => ({
-            id: w.weddingId,
-            title: w.weddingTitle,
-            primaryCity: w.primaryCity
-          }));
-          setWeddings(list);
-          if (list.length > 0 && !selectedWeddingId) {
-            setSelectedWeddingId(list[0].id);
-          }
+        const json = await res.json();
+        const rawList = Array.isArray(json) ? json : json.data || [];
+        const list: FinanceWeddingSummaryItem[] = rawList.map((w: any) => ({
+          id: w.id,
+          title: w.title,
+          primaryCity: w.primaryCity || 'Jaipur'
+        }));
+        setWeddings(list);
+        if (list.length > 0 && !selectedWeddingId) {
+          setSelectedWeddingId(list[0].id);
         }
       }
     } catch (err) {
@@ -113,9 +154,9 @@ export const FinanceLedgerPage: React.FC = () => {
     setIsLoading(true);
     try {
       const [ledgerRes, invoicesRes, billsRes] = await Promise.all([
-        fetch(`/api/finance/ledger/${weddingId}`),
-        fetch(`/api/finance/invoices/${weddingId}`),
-        fetch(`/api/finance/bills/${weddingId}`)
+        apiFetch(`/api/finance/ledger/${weddingId}`),
+        apiFetch(`/api/finance/invoices/${weddingId}`),
+        apiFetch(`/api/finance/bills/${weddingId}`)
       ]);
 
       if (ledgerRes.ok) setLedger(await ledgerRes.json());
@@ -269,63 +310,65 @@ export const FinanceLedgerPage: React.FC = () => {
           </Card>
 
           {/* Card 3: Ledger Watchdog & Anomalies */}
-          <Card
-            title="Ledger Anomaly Watchdog"
-            subtitle="Automated 6-vector audit checks"
-            action={
-              ledger.auditAnomalies.length === 0 ? (
-                <Badge variant="success" size="sm" dot>Clean Audit</Badge>
-              ) : (
-                <Badge variant="danger" size="sm" dot>
-                  {ledger.auditAnomalies.length} Flagged
-                </Badge>
-              )
-            }
-          >
-            {ledger.auditAnomalies.length === 0 ? (
-              <div className="space-y-2 text-xs">
-                <div className="p-2.5 bg-emerald-50 rounded flex justify-between items-center text-emerald-800">
-                  <span className="flex items-center gap-1.5">
-                    <ShieldCheck className="w-4 h-4 text-emerald-600" />
-                    Pass-Through Margin Balance:
-                  </span>
-                  <span className="font-mono font-semibold">Exact 0.00%</span>
-                </div>
-                <div className="p-2.5 bg-emerald-50 rounded flex justify-between items-center text-emerald-800">
-                  <span className="flex items-center gap-1.5">
-                    <ShieldCheck className="w-4 h-4 text-emerald-600" />
-                    Vendor Bill Reconciliation:
-                  </span>
-                  <span className="font-mono font-semibold">100% Compliant</span>
-                </div>
-                <div className="p-2.5 bg-emerald-50 rounded flex justify-between items-center text-emerald-800">
-                  <span className="flex items-center gap-1.5">
-                    <ShieldCheck className="w-4 h-4 text-emerald-600" />
-                    Payment Ceiling Guard:
-                  </span>
-                  <span className="font-mono font-semibold">Locked & Safe</span>
-                </div>
-              </div>
-            ) : (
-              <div className="space-y-2 text-xs">
-                {ledger.auditAnomalies.map((anom, idx) => (
-                  <div
-                    key={idx}
-                    className="p-2.5 bg-rose-50 border border-rose-200 rounded text-rose-900"
-                  >
-                    <div className="flex items-center justify-between font-bold mb-1">
-                      <span className="flex items-center gap-1">
-                        <AlertTriangle className="w-3.5 h-3.5 text-rose-700" />
-                        {anom.code}
-                      </span>
-                      <span className="text-[10px] font-mono">{anom.referenceNumber}</span>
-                    </div>
-                    <p className="text-[11px] leading-relaxed">{anom.explanation}</p>
+          {canViewAnomalies && (
+            <Card
+              title="Ledger Anomaly Watchdog"
+              subtitle="Automated 6-vector audit checks"
+              action={
+                ledger.auditAnomalies.length === 0 ? (
+                  <Badge variant="success" size="sm" dot>Clean Audit</Badge>
+                ) : (
+                  <Badge variant="danger" size="sm" dot>
+                    {ledger.auditAnomalies.length} Flagged
+                  </Badge>
+                )
+              }
+            >
+              {ledger.auditAnomalies.length === 0 ? (
+                <div className="space-y-2 text-xs">
+                  <div className="p-2.5 bg-emerald-50 rounded flex justify-between items-center text-emerald-800">
+                    <span className="flex items-center gap-1.5">
+                      <ShieldCheck className="w-4 h-4 text-emerald-600" />
+                      Pass-Through Margin Balance:
+                    </span>
+                    <span className="font-mono font-semibold">Exact 0.00%</span>
                   </div>
-                ))}
-              </div>
-            )}
-          </Card>
+                  <div className="p-2.5 bg-emerald-50 rounded flex justify-between items-center text-emerald-800">
+                    <span className="flex items-center gap-1.5">
+                      <ShieldCheck className="w-4 h-4 text-emerald-600" />
+                      Vendor Bill Reconciliation:
+                    </span>
+                    <span className="font-mono font-semibold">100% Compliant</span>
+                  </div>
+                  <div className="p-2.5 bg-emerald-50 rounded flex justify-between items-center text-emerald-800">
+                    <span className="flex items-center gap-1.5">
+                      <ShieldCheck className="w-4 h-4 text-emerald-600" />
+                      Payment Ceiling Guard:
+                    </span>
+                    <span className="font-mono font-semibold">Locked & Safe</span>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-2 text-xs">
+                  {ledger.auditAnomalies.map((anom, idx) => (
+                    <div
+                      key={idx}
+                      className="p-2.5 bg-rose-50 border border-rose-200 rounded text-rose-900"
+                    >
+                      <div className="flex items-center justify-between font-bold mb-1">
+                        <span className="flex items-center gap-1">
+                          <AlertTriangle className="w-3.5 h-3.5 text-rose-700" />
+                          {anom.code}
+                        </span>
+                        <span className="text-[10px] font-mono">{anom.referenceNumber}</span>
+                      </div>
+                      <p className="text-[11px] leading-relaxed">{anom.explanation}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </Card>
+          )}
         </div>
       )}
 
@@ -384,8 +427,8 @@ export const FinanceLedgerPage: React.FC = () => {
                           {inv.status}
                         </Badge>
                       </td>
-                      <td className="px-4 py-3 text-right">
-                        {!isPaid && (
+                      <td className="px-4 py-3 text-right space-x-2">
+                        {canRecordClientPayment && !isPaid && (
                           <Button
                             variant="primary"
                             size="sm"
@@ -404,6 +447,19 @@ export const FinanceLedgerPage: React.FC = () => {
                             Record Inflow
                           </Button>
                         )}
+                        {canApproveClientPayment &&
+                          (inv.payments || [])
+                            .filter((p: any) => p.status === 'PENDING')
+                            .map((p: any) => (
+                              <Button
+                                key={p.id}
+                                variant="secondary"
+                                size="sm"
+                                onClick={() => handleApproveClientPayment(p.id)}
+                              >
+                                Approve Inflow
+                              </Button>
+                            ))}
                       </td>
                     </tr>
                   );
@@ -477,7 +533,7 @@ export const FinanceLedgerPage: React.FC = () => {
                         </Badge>
                       </td>
                       <td className="px-4 py-3 text-right space-x-2">
-                        {!b.reconciled && (
+                        {canReconcileVendorBill && !b.reconciled && (
                           <Button
                             variant="secondary"
                             size="sm"
@@ -498,7 +554,7 @@ export const FinanceLedgerPage: React.FC = () => {
                           </Button>
                         )}
 
-                        {!isPaid && (
+                        {canRecordVendorPayment && !isPaid && (
                           <Button
                             variant="gold"
                             size="sm"
@@ -515,6 +571,20 @@ export const FinanceLedgerPage: React.FC = () => {
                             Disburse
                           </Button>
                         )}
+
+                        {canApproveVendorPayment &&
+                          (b.payments || [])
+                            .filter((p: any) => p.status === 'PENDING')
+                            .map((p: any) => (
+                              <Button
+                                key={p.id}
+                                variant="secondary"
+                                size="sm"
+                                onClick={() => handleApproveVendorPayment(p.id)}
+                              >
+                                Approve Settlement
+                              </Button>
+                            ))}
                       </td>
                     </tr>
                   );

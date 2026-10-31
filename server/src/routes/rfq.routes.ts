@@ -1,13 +1,17 @@
 import { Router, Request, Response } from "express";
 import { PrismaClient } from "@prisma/client";
 import { VendorProcurementService } from "../services/vendorProcurement.service.js";
+import { authenticate, requirePermission, validateCsrf } from "../middleware/index.js";
 
 export function createRfqRouter(prisma: PrismaClient): Router {
   const router = Router();
   const service = new VendorProcurementService(prisma);
 
+  // All RFQ routes require an authenticated session
+  router.use(authenticate(prisma));
+
   // POST /api/rfq/groups - Create a new RFQ group for a wedding
-  router.post("/groups", async (req: Request, res: Response) => {
+  router.post("/groups", requirePermission("procurement:rfq:create"), validateCsrf(prisma), async (req: Request, res: Response) => {
     try {
       const { weddingId, title, category, targetGuestCount, vendorIds, requirement } = req.body;
       if (!weddingId || !title || !category || !vendorIds || !vendorIds.length || !requirement) {
@@ -29,7 +33,7 @@ export function createRfqRouter(prisma: PrismaClient): Router {
   });
 
   // GET /api/rfq/groups/wedding/:weddingId - List RFQ groups for a specific wedding
-  router.get("/groups/wedding/:weddingId", async (req: Request, res: Response) => {
+  router.get("/groups/wedding/:weddingId", requirePermission("procurement:rfq:read"), async (req: Request, res: Response) => {
     try {
       const groups = await service.listRfqGroupsForWedding(req.params.weddingId);
       res.json(groups);
@@ -39,7 +43,7 @@ export function createRfqRouter(prisma: PrismaClient): Router {
   });
 
   // GET /api/rfq/groups/:groupId - Get RFQ group details with quotations and requests
-  router.get("/groups/:groupId", async (req: Request, res: Response) => {
+  router.get("/groups/:groupId", requirePermission("procurement:rfq:read"), async (req: Request, res: Response) => {
     try {
       const group = await service.getRfqGroupDetails(req.params.groupId);
       if (!group) {
@@ -52,7 +56,7 @@ export function createRfqRouter(prisma: PrismaClient): Router {
   });
 
   // POST /api/rfq/quotations - Submit a vendor quotation with line items
-  router.post("/quotations", async (req: Request, res: Response) => {
+  router.post("/quotations", requirePermission("procurement:rfq:submit_quote"), validateCsrf(prisma), async (req: Request, res: Response) => {
     try {
       const {
         vendorRequestId,
@@ -94,7 +98,7 @@ export function createRfqRouter(prisma: PrismaClient): Router {
   });
 
   // GET /api/rfq/groups/:groupId/comparison - Get 3-vendor line-by-line comparison matrix
-  router.get("/groups/:groupId/comparison", async (req: Request, res: Response) => {
+  router.get("/groups/:groupId/comparison", requirePermission("procurement:rfq:read"), async (req: Request, res: Response) => {
     try {
       const comparison = await service.getQuotationComparisonMatrix(req.params.groupId);
       res.json(comparison);
@@ -104,7 +108,7 @@ export function createRfqRouter(prisma: PrismaClient): Router {
   });
 
   // POST /api/rfq/groups/:groupId/award - Select winning vendor & link to wedding
-  router.post("/groups/:groupId/award", async (req: Request, res: Response) => {
+  router.post("/groups/:groupId/award", requirePermission("procurement:rfq:award"), validateCsrf(prisma), async (req: Request, res: Response) => {
     try {
       const { quotationId } = req.body;
       if (!quotationId) {

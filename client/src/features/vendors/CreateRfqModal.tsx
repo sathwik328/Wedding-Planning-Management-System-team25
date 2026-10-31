@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Modal } from '../../components/common/Modal';
 import { Button } from '../../components/common/Button';
 import { VENDOR_CATEGORIES, VendorCategory } from 'shared';
+import { apiFetch } from '../../services/api';
 
 export interface VendorOption {
   id: string;
@@ -64,7 +65,7 @@ export const CreateRfqModal: React.FC<CreateRfqModalProps> = ({
 
     setIsSubmitting(true);
     try {
-      const res = await fetch('/api/rfq/groups', {
+      const res = await apiFetch('/api/rfq/groups', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

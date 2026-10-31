@@ -11,6 +11,8 @@ import {
   Sparkles
 } from 'lucide-react';
 import { formatPaiseToINR, formatPaiseCompact } from 'shared';
+import { useAuth } from '../../contexts/AuthContext';
+import { apiFetch } from '../../services/api';
 
 export interface SeasonalFinancialAnalytics {
   seasonOverview: {
@@ -23,7 +25,7 @@ export interface SeasonalFinancialAnalytics {
     totalBudgetPaise: string;
     averageBudgetPaise: string;
   };
-  portfolioLedger: {
+  portfolioLedger?: {
     accrual: {
       totalInvoicedRevenuePaise: string;
       totalVendorExpensesPaise: string;
@@ -81,13 +83,18 @@ export interface SeasonalFinancialAnalytics {
 }
 
 export const FounderAnalyticsPage: React.FC = () => {
+  const { hasPermission } = useAuth();
+  const canViewSeasonal = hasPermission('analytics:seasonal:read');
+  const canViewTreasury = hasPermission('analytics:treasury:read');
+
   const [data, setData] = useState<SeasonalFinancialAnalytics | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const fetchAnalytics = async () => {
+    if (!canViewSeasonal) return;
     setIsLoading(true);
     try {
-      const res = await fetch('/api/analytics/seasonal');
+      const res = await apiFetch('/api/analytics/seasonal');
       if (res.ok) {
         const json = await res.json();
         setData(json);
@@ -101,7 +108,19 @@ export const FounderAnalyticsPage: React.FC = () => {
 
   useEffect(() => {
     fetchAnalytics();
-  }, []);
+  }, [canViewSeasonal]);
+
+  if (!canViewSeasonal) {
+    return (
+      <div className="p-8 text-center bg-rose-50 border border-rose-200 rounded text-rose-900 max-w-lg mx-auto my-12">
+        <ShieldCheck className="w-10 h-10 text-rose-700 mx-auto mb-2 opacity-80" />
+        <h3 className="font-serif text-lg font-bold">Access Restricted</h3>
+        <p className="text-xs text-rose-700 mt-1">
+          Founder Strategic Analytics requires executive Founder or Admin authorization.
+        </p>
+      </div>
+    );
+  }
 
   if (!data) {
     return (
@@ -187,10 +206,10 @@ export const FounderAnalyticsPage: React.FC = () => {
             <Percent className="w-4 h-4 text-emerald-600" />
           </div>
           <div className="font-serif text-2xl font-bold text-emerald-800">
-            {portfolioLedger.accrual.operatingProfitMarginPercent.toFixed(1)}%
+            {portfolioLedger ? `${portfolioLedger.accrual.operatingProfitMarginPercent.toFixed(1)}%` : 'Gated'}
           </div>
           <div className="text-[11px] text-emerald-700 font-medium mt-1">
-            Audited Operating Profit
+            {portfolioLedger ? 'Audited Operating Profit' : 'Requires Treasury Authority'}
           </div>
         </div>
       </div>
@@ -244,35 +263,41 @@ export const FounderAnalyticsPage: React.FC = () => {
           title="Consolidated Treasury Cash Flow"
           subtitle="Strictly verified and cleared cash movements"
         >
-          <div className="space-y-2.5 text-xs">
-            <div className="flex justify-between pb-2 border-b border-[#E7E2D8]">
-              <span className="text-[#718096]">Cleared Client Collections:</span>
-              <span className="font-mono font-bold text-emerald-700">
-                {formatPaiseToINR(portfolioLedger.cashFlow.totalClearedInflowsPaise)}
-              </span>
-            </div>
+          {portfolioLedger && canViewTreasury ? (
+            <div className="space-y-2.5 text-xs">
+              <div className="flex justify-between pb-2 border-b border-[#E7E2D8]">
+                <span className="text-[#718096]">Cleared Client Collections:</span>
+                <span className="font-mono font-bold text-emerald-700">
+                  {formatPaiseToINR(portfolioLedger.cashFlow.totalClearedInflowsPaise)}
+                </span>
+              </div>
 
-            <div className="flex justify-between pb-2 border-b border-[#E7E2D8]">
-              <span className="text-[#718096]">Cleared Vendor Settlements:</span>
-              <span className="font-mono font-bold text-rose-700">
-                {formatPaiseToINR(portfolioLedger.cashFlow.totalClearedOutflowsPaise)}
-              </span>
-            </div>
+              <div className="flex justify-between pb-2 border-b border-[#E7E2D8]">
+                <span className="text-[#718096]">Cleared Vendor Settlements:</span>
+                <span className="font-mono font-bold text-rose-700">
+                  {formatPaiseToINR(portfolioLedger.cashFlow.totalClearedOutflowsPaise)}
+                </span>
+              </div>
 
-            <div className="flex justify-between pb-2 border-b border-[#E7E2D8]">
-              <span className="text-[#718096]">Cleared Direct Expenses:</span>
-              <span className="font-mono font-bold text-stone-700">
-                {formatPaiseToINR(portfolioLedger.cashFlow.totalClearedDirectExpensesPaise)}
-              </span>
-            </div>
+              <div className="flex justify-between pb-2 border-b border-[#E7E2D8]">
+                <span className="text-[#718096]">Cleared Direct Expenses:</span>
+                <span className="font-mono font-bold text-stone-700">
+                  {formatPaiseToINR(portfolioLedger.cashFlow.totalClearedDirectExpensesPaise)}
+                </span>
+              </div>
 
-            <div className="flex justify-between pt-1 font-semibold text-sm">
-              <span className="text-[#1E2229]">Consolidated Net Cash:</span>
-              <span className="font-mono font-bold text-[#5B1424]">
-                {formatPaiseToINR(portfolioLedger.cashFlow.netCashPositionPaise)}
-              </span>
+              <div className="flex justify-between pt-1 font-semibold text-sm">
+                <span className="text-[#1E2229]">Consolidated Net Cash:</span>
+                <span className="font-mono font-bold text-[#5B1424]">
+                  {formatPaiseToINR(portfolioLedger.cashFlow.netCashPositionPaise)}
+                </span>
+              </div>
             </div>
-          </div>
+          ) : (
+            <div className="p-4 text-center text-xs text-[#718096] italic">
+              Treasury & Cash Position data requires 'analytics:treasury:read' authority.
+            </div>
+          )}
         </Card>
 
         {/* Audit Watchdog Across Portfolio */}

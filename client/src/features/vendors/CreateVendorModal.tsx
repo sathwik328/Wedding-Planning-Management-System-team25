@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Modal } from '../../components/common/Modal';
 import { Button } from '../../components/common/Button';
 import { VENDOR_CATEGORIES, VendorCategory } from 'shared';
+import { apiFetch } from '../../services/api';
 
 export interface CreateVendorModalProps {
   isOpen: boolean;
@@ -32,7 +33,7 @@ export const CreateVendorModal: React.FC<CreateVendorModalProps> = ({
     setIsSubmitting(true);
 
     try {
-      const res = await fetch('/api/vendors', {
+      const res = await apiFetch('/api/vendors', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

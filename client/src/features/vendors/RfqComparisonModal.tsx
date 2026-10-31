@@ -4,6 +4,7 @@ import { Button } from '../../components/common/Button';
 import { Badge } from '../../components/common/Badge';
 import { Trophy, CheckCircle } from 'lucide-react';
 import { formatPaiseToINR, formatPaiseCompact } from 'shared';
+import { useAuth } from '../../contexts/AuthContext';
 
 export interface ComparisonQuotation {
   quotationId: string;
@@ -56,6 +57,8 @@ export const RfqComparisonModal: React.FC<RfqComparisonModalProps> = ({
   data,
   onAwardVendor
 }) => {
+  const { hasPermission } = useAuth();
+  const canAward = hasPermission('procurement:rfq:award');
   const [awardingId, setAwardingId] = useState<string | null>(null);
 
   if (!isOpen || !data) return null;
@@ -209,6 +212,10 @@ export const RfqComparisonModal: React.FC<RfqComparisonModalProps> = ({
                 ) : isAwarded ? (
                   <div className="text-center py-2 text-xs text-[#718096] italic">
                     Competing Request Closed
+                  </div>
+                ) : !canAward ? (
+                  <div className="text-center py-2 text-xs text-[#718096] italic">
+                    Awarding requires Lead Planner or Founder authorization
                   </div>
                 ) : (
                   <Button
