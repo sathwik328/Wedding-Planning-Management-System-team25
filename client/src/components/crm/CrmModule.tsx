@@ -6,6 +6,7 @@ import { Button } from '../common/Button';
 import { EnquiryModal } from './EnquiryModal';
 import { ConsultationModal } from './ConsultationModal';
 import { CoupleProfileModal } from './CoupleProfileModal';
+import { AgreementModal } from '../agreement/AgreementModal';
 import { formatPaiseCompact } from 'shared';
 import { 
   Users, 
@@ -77,6 +78,7 @@ export const CrmModule: React.FC = () => {
   const [isEnquiryModalOpen, setIsEnquiryModalOpen] = useState(false);
   const [consultationTarget, setConsultationTarget] = useState<EnquiryItem | null>(null);
   const [convertTarget, setConvertTarget] = useState<EnquiryItem | null>(null);
+  const [agreementTarget, setAgreementTarget] = useState<CoupleItem | null>(null);
 
   // Queries
   const { data: enquiries = [], isLoading: enquiriesLoading, refetch: refetchEnquiries } = useQuery<EnquiryItem[]>({
@@ -358,6 +360,7 @@ export const CrmModule: React.FC = () => {
                     <th className="px-4 py-3 font-semibold">Palace Address</th>
                     <th className="px-4 py-3 font-semibold">Agreement Status</th>
                     <th className="px-4 py-3 font-semibold">Wedding Status</th>
+                    <th className="px-4 py-3 font-semibold text-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#E7E2D8]">
@@ -397,6 +400,15 @@ export const CrmModule: React.FC = () => {
                         ) : (
                           <span className="text-[11px] text-[#718096]">Pre-contract</span>
                         )}
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        <Button
+                          variant={couple.serviceAgreement?.isExecuted ? "secondary" : "gold"}
+                          size="sm"
+                          onClick={() => setAgreementTarget(couple)}
+                        >
+                          {couple.serviceAgreement?.isExecuted ? "View Agreement" : "Contract"}
+                        </Button>
                       </td>
                     </tr>
                   ))}
@@ -438,6 +450,18 @@ export const CrmModule: React.FC = () => {
           onClose={() => setConvertTarget(null)}
           onSuccess={() => {
             queryClient.invalidateQueries({ queryKey: ['enquiries'] });
+            queryClient.invalidateQueries({ queryKey: ['couples'] });
+          }}
+        />
+      )}
+
+      {agreementTarget && (
+        <AgreementModal
+          isOpen={!!agreementTarget}
+          coupleId={agreementTarget.id}
+          coupleNames={`${agreementTarget.partnerOneName} & ${agreementTarget.partnerTwoName}`}
+          onClose={() => setAgreementTarget(null)}
+          onSuccess={() => {
             queryClient.invalidateQueries({ queryKey: ['couples'] });
           }}
         />
