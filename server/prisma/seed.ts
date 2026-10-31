@@ -1,4 +1,5 @@
 import { PrismaClient } from "@prisma/client";
+import { hashPassword } from "../src/utils/password.js";
 
 const prisma = new PrismaClient();
 
@@ -43,17 +44,43 @@ const COUPLE_NAMES = [
   ["Aayush Bhansali", "Saloni Bothra"]
 ];
 
+/**
+ * Validate the execution environment for seeding.
+ * Fails immediately if executed in production or if DEMO_USER_PASSWORD is missing or blank.
+ */
+export function validateSeedEnvironment(env: { NODE_ENV?: string; DEMO_USER_PASSWORD?: string } = process.env): string {
+  if (env.NODE_ENV === "production") {
+    throw new Error("Seeding demo accounts is strictly prohibited in production environments (NODE_ENV=production).");
+  }
+
+  const demoUserPassword = env.DEMO_USER_PASSWORD;
+  if (!demoUserPassword || demoUserPassword.trim() === "") {
+    throw new Error(
+      "Missing required environment variable DEMO_USER_PASSWORD. A non-empty DEMO_USER_PASSWORD is required to seed demonstration user accounts."
+    );
+  }
+
+  return demoUserPassword;
+}
+
 async function main() {
+  const demoUserPassword = validateSeedEnvironment(process.env);
   console.log("Seeding The Royal Knot demonstration database...");
 
   // 1. Seed Team Members / Users
+  const defaultPasswordHash = hashPassword(demoUserPassword);
+
   const leadPlanner = await prisma.user.upsert({
     where: { email: "lead.planner@royalknot.in" },
-    update: {},
+    update: {
+      role: "LEAD_PLANNER",
+      passwordHash: defaultPasswordHash
+    },
     create: {
       name: "Ananya Singhal",
       email: "lead.planner@royalknot.in",
       role: "LEAD_PLANNER",
+      passwordHash: defaultPasswordHash,
       phone: "+919829011111",
       hourlyRatePaise: 250000n // ₹2,500/hr
     }
@@ -61,11 +88,15 @@ async function main() {
 
   const coordinator = await prisma.user.upsert({
     where: { email: "operations@royalknot.in" },
-    update: {},
+    update: {
+      role: "COORDINATOR",
+      passwordHash: defaultPasswordHash
+    },
     create: {
       name: "Rajesh Chouhan",
       email: "operations@royalknot.in",
       role: "COORDINATOR",
+      passwordHash: defaultPasswordHash,
       phone: "+919829022222",
       hourlyRatePaise: 150000n // ₹1,500/hr
     }
@@ -73,11 +104,15 @@ async function main() {
 
   const financeDirector = await prisma.user.upsert({
     where: { email: "finance@royalknot.in" },
-    update: {},
+    update: {
+      role: "FINANCE_DIRECTOR",
+      passwordHash: defaultPasswordHash
+    },
     create: {
       name: "Vikram Rathore",
       email: "finance@royalknot.in",
       role: "FINANCE_DIRECTOR",
+      passwordHash: defaultPasswordHash,
       phone: "+919829033333",
       hourlyRatePaise: 300000n // ₹3,000/hr
     }
@@ -85,11 +120,15 @@ async function main() {
 
   await prisma.user.upsert({
     where: { email: "founder@royalknot.in" },
-    update: {},
+    update: {
+      role: "FOUNDER",
+      passwordHash: defaultPasswordHash
+    },
     create: {
       name: "Devika Rajyashree",
       email: "founder@royalknot.in",
-      role: "ADMIN",
+      role: "FOUNDER",
+      passwordHash: defaultPasswordHash,
       phone: "+919829000000",
       hourlyRatePaise: 500000n // ₹5,000/hr
     }
@@ -285,11 +324,14 @@ async function main() {
   console.log("SUCCESS: 25 Synthetic demo weddings and master vendors seeded successfully.");
 }
 
-main()
-  .catch((e) => {
-    console.error(e);
-    process.exit(1);
-  })
-  .finally(async () => {
-    await prisma.$disconnect();
-  });
+const isDirectExecution = process.argv[1] && (process.argv[1].endsWith("seed.ts") || process.argv[1].endsWith("seed.js"));
+if (isDirectExecution) {
+  main()
+    .catch((e) => {
+      console.error(e);
+      process.exit(1);
+    })
+    .finally(async () => {
+      await prisma.$disconnect();
+    });
+}

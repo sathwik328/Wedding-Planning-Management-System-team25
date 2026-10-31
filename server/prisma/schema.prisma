@@ -14,7 +14,8 @@ model User {
   id              String          @id @default(uuid())
   email           String          @unique
   name            String
-  role            String          // "ADMIN", "LEAD_PLANNER", "COORDINATOR", "FINANCE_DIRECTOR"
+  role            String          // "ADMIN", "LEAD_PLANNER", "COORDINATOR", "FINANCE_DIRECTOR", "FOUNDER"
+  passwordHash    String          @default("")
   phone           String?
   hourlyRatePaise BigInt          @default(150000) // ₹1,500.00/hr in paise
   tasksAssigned   Task[]

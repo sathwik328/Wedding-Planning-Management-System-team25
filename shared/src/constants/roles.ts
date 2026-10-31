@@ -1,4 +1,10 @@
-export const USER_ROLES = ["ADMIN", "LEAD_PLANNER", "COORDINATOR", "FINANCE_DIRECTOR"] as const;
+export const USER_ROLES = [
+  "ADMIN",
+  "LEAD_PLANNER",
+  "COORDINATOR",
+  "FINANCE_DIRECTOR",
+  "FOUNDER"
+] as const;
 export type UserRole = typeof USER_ROLES[number];
 
 export const VENDOR_CATEGORIES = [

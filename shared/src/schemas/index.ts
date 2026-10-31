@@ -69,3 +69,5 @@ export const CreateVendorPaymentSchema = z.object({
   transactionReference: z.string().min(3),
   notes: z.string().optional()
 });
+
+export * from "./auth.js";
