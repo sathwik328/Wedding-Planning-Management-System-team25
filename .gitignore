@@ -51,9 +51,8 @@ coverage/
 .vite/
 client/.vite/
 
-# Large demo recordings
-*.webm
+# Large demo recordings (allow official release demo)
 *.mp4
-recordings/
-client/public/recordings/
-
+/recordings/
+client/public/recordings/*
+!client/public/recordings/the-royal-knot-official-demo.webm

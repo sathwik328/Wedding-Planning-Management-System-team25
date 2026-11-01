@@ -13,6 +13,23 @@
 
 ---
 
+## 🎥 Official System Walkthrough & Feature Demo
+
+Watch the complete guided video tour demonstrating the full luxury wedding lifecycle — VIP enquiry intake, touch contract signing, milestone timeline automation, multi-vendor RFQ comparison matrices, double-entry financial settlements with zero margin leakage, and the 5 Phase 8 special features (Readiness Radar, Budget Simulator, Guest QR Portal, Contingency Planner, and Vendor Reliability):
+
+<div align="center">
+  <video src="./client/public/recordings/the-royal-knot-official-demo.webm" width="100%" controls="controls" poster="./client/public/royal-wedding-palace.jpg">
+    <p>Your browser does not support the video tag. <a href="./client/public/recordings/the-royal-knot-official-demo.webm">Download or play the official demo video directly</a>.</p>
+  </video>
+  <br/>
+  <p>
+    🎬 <strong><a href="./client/public/recordings/the-royal-knot-official-demo.webm">▶ Play / Download Official Demo Video (`the-royal-knot-official-demo.webm`)</a></strong> &nbsp;|&nbsp; 
+    🖥️ <strong><a href="./client/public/demo-showcase.html">Interactive Browser Showcase Page</a></strong>
+  </p>
+</div>
+
+---
+
 ## 🏛️ Platform Highlights & Core Capabilities
 
 The Royal Knot brings together luxury concierge service, minute-by-minute operational execution, and auditable financial discipline into a unified system.
@@ -102,7 +119,8 @@ Wedding-Planning-Management-System/
 │   ├── src/services/       # Business logic engines & transactional workflows
 │   └── tests/              # 24 Vitest integration & unit test suites (102 tests)
 ├── client/                 # Vite + React luxury SPA
-│   ├── public/             # Palace background visuals & interactive showcase HTML
+│   ├── public/             # Palace background visuals, demo recordings & interactive showcase HTML
+│   │   └── recordings/     # High-definition system demonstration video (WebM)
 │   ├── src/components/     # Modular UI components (CRM, Operations, Finance, Portal)
 │   ├── src/features/       # Specialized modules (Vendors, Founder Analytics)
 │   ├── src/contexts/       # React AuthContext and session state
