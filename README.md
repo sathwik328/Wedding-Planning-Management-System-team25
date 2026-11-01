@@ -28,6 +28,21 @@ Watch the complete guided video tour demonstrating the full luxury wedding lifec
 </div>
 
 ---
+## 🔑 Demonstration User Accounts
+
+All demonstration accounts are configured with the demo password defined in `DEMO_USER_PASSWORD` (default: `RoyalKnot#LocalDev2026`):
+
+| Role | Email Address | Password | Accessible Modules |
+| :--- | :--- | :--- | :--- |
+| **Founder / CEO** | `founder@royalknot.in` | `RoyalKnot#LocalDev2026` | Full Access: Executive Analytics, Finance, CRM, Ops, Vendors |
+| **Lead Planner** | `lead.planner@royalknot.in` | `RoyalKnot#LocalDev2026` | CRM Enquiries, Wedding Portfolios, Service Agreements, Day-of Ops |
+| **Operations Coordinator** | `operations@royalknot.in` | `RoyalKnot#LocalDev2026` | Day-of Minute Timeline, Readiness Radar, Incident Command, Staff Roster |
+| **Finance Director** | `finance@royalknot.in` | `RoyalKnot#LocalDev2026` | Financial Ledger, RFQ Quotes, Vendor Settlements, Client Invoices |
+| **Administrator** | `admin@royalknot.in` | `RoyalKnot#LocalDev2026` | Admin Console, User Directory, Demo Data Explorer |
+
+---
+
+---
 
 ## 🏛️ Platform Highlights & Core Capabilities
 
@@ -97,6 +112,7 @@ flowchart TB
 4. **Contingency & Backup Planner**: Weather and operational emergency protocol activator with indoor venue relocation workflows and post-incident reviews.
 5. **Vendor Reliability Intelligence**: Historical vendor reliability algorithm measuring timeliness, quality, invoice variance, and communication responsiveness.
 
+
 ---
 
 ## 📁 Monorepo Architecture
@@ -131,21 +147,6 @@ Wedding-Planning-Management-System/
 ├── vercel.json             # Optional Vercel client deployment with API proxy rewrites
 └── DEPLOYMENT.md           # Comprehensive operations & cloud deployment guide
 ```
-
----
-
-## 🔑 Demonstration User Accounts
-
-All demonstration accounts are configured with the demo password defined in `DEMO_USER_PASSWORD` (default: `RoyalKnot#LocalDev2026`):
-
-| Role | Email Address | Password | Accessible Modules |
-| :--- | :--- | :--- | :--- |
-| **Founder / CEO** | `founder@royalknot.in` | `RoyalKnot#LocalDev2026` | Full Access: Executive Analytics, Finance, CRM, Ops, Vendors |
-| **Lead Planner** | `lead.planner@royalknot.in` | `RoyalKnot#LocalDev2026` | CRM Enquiries, Wedding Portfolios, Service Agreements, Day-of Ops |
-| **Operations Coordinator** | `operations@royalknot.in` | `RoyalKnot#LocalDev2026` | Day-of Minute Timeline, Readiness Radar, Incident Command, Staff Roster |
-| **Finance Director** | `finance@royalknot.in` | `RoyalKnot#LocalDev2026` | Financial Ledger, RFQ Quotes, Vendor Settlements, Client Invoices |
-| **Administrator** | `admin@royalknot.in` | `RoyalKnot#LocalDev2026` | Admin Console, User Directory, Demo Data Explorer |
-
 ---
 
 ## 📄 License & Team
