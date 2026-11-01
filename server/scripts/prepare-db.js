@@ -39,6 +39,22 @@ if (isPostgres) {
       stdio: "inherit"
     });
     console.log("[DB] PostgreSQL schema ready.");
+
+    console.log("[DB] Seeding demo database accounts...");
+    try {
+      execSync("npx tsx prisma/seed.ts", {
+        cwd: serverDir,
+        env: {
+          ...process.env,
+          ALLOW_DEMO_SEED: "true",
+          DEMO_USER_PASSWORD: process.env.DEMO_USER_PASSWORD || "RoyalKnot#LocalDev2026"
+        },
+        stdio: "inherit"
+      });
+      console.log("[DB] Demo database accounts successfully seeded.");
+    } catch (seedErr) {
+      console.warn("[DB] Non-critical warning during seed:", seedErr?.message || seedErr);
+    }
   } catch (err) {
     console.error("[DB] Note during PostgreSQL initialization:", err?.message || err);
     throw err;

@@ -19,7 +19,7 @@ services:
       - key: SESSION_SECRET
         generateValue: true
       - key: DEMO_USER_PASSWORD
-        value: RoyalKnot#RenderLive2026
+        value: RoyalKnot#LocalDev2026
 
 databases:
   - name: royal-knot-db

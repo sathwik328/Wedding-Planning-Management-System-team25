@@ -11,18 +11,18 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
 
   // Demo user credentials mapping to seeded database accounts
   const demoUsers = [
+    { name: 'Devika Rajyashree', role: 'Founder', email: 'founder@royalknot.in' },
     { name: 'Ananya Singhal', role: 'Lead Planner', email: 'lead.planner@royalknot.in' },
     { name: 'Rajesh Chouhan', role: 'Coordinator', email: 'operations@royalknot.in' },
-    { name: 'System Administrator', role: 'Admin', email: 'admin@royalknot.in' },
-    { name: 'Devika Rajyashree', role: 'Founder', email: 'founder@royalknot.in' },
-    { name: 'Vikram Rathore', role: 'Finance Director', email: 'finance@royalknot.in' }
+    { name: 'Vikram Rathore', role: 'Finance Director', email: 'finance@royalknot.in' },
+    { name: 'System Administrator', role: 'Admin', email: 'admin@royalknot.in' }
   ];
 
   const [authMode, setAuthMode] = useState<'signin' | 'register'>('signin');
   const [useManualEmail, setUseManualEmail] = useState(true);
   const [selectedUserIndex, setSelectedUserIndex] = useState(0);
-  const [email, setEmail] = useState('lead.planner@royalknot.in');
-  const [password, setPassword] = useState('RoyalKnot#2026');
+  const [email, setEmail] = useState('founder@royalknot.in');
+  const [password, setPassword] = useState('RoyalKnot#LocalDev2026');
 
   // Registration form state
   const [regName, setRegName] = useState('');
@@ -496,6 +496,25 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
                         fontSize: '.85rem'
                       }}
                     />
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '.35rem' }}>
+                      <span style={{ fontSize: '.72rem', color: 'var(--tp)' }}>
+                        Default Demo: <strong style={{ color: 'var(--gold)', userSelect: 'all' }}>RoyalKnot#LocalDev2026</strong>
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setPassword('RoyalKnot#LocalDev2026')}
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          color: 'var(--gold)',
+                          fontSize: '.72rem',
+                          cursor: 'pointer',
+                          textDecoration: 'underline'
+                        }}
+                      >
+                        Auto-fill
+                      </button>
+                    </div>
                   </div>
 
                   {error && (
