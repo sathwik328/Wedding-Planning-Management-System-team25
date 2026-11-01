@@ -1,5 +1,12 @@
 # The Royal Knot — Unified Wedding Operations & Planning Management System
 
+<div align="center">
+
+[![Live App](https://img.shields.io/badge/🚀%20Live%20Website-Try%20it%20Now-B8955A?style=for-the-badge&logo=render&logoColor=white)](https://royal-knot-web.onrender.com/)
+[![YouTube Demo](https://img.shields.io/badge/YouTube-Watch%20Demo%20Video-FF0000?style=for-the-badge&logo=youtube&logoColor=white)](https://youtu.be/a2rSGeVK4qU)
+
+<br/>
+
 [![Node.js](https://img.shields.io/badge/Node.js-20.x-green.svg)](https://nodejs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.4-blue.svg)](https://www.typescriptlang.org/)
 [![React](https://img.shields.io/badge/React-18-61dafb.svg)](https://react.dev/)
@@ -8,6 +15,8 @@
 [![Tailwind CSS](https://img.shields.io/badge/TailwindCSS-3.4-38B2AC.svg)](https://tailwindcss.com/)
 [![Vitest](https://img.shields.io/badge/Vitest-102_Tests_Passing-brightgreen.svg)](https://vitest.dev/)
 [![License](https://img.shields.io/badge/License-Private-lightgrey.svg)]()
+
+</div>
 
 > An enterprise luxury destination wedding operations, financial ledger, and day-of execution platform engineered specifically for high-end wedding planning agencies managing royal palace celebrations across Rajasthan and worldwide.
 
@@ -18,10 +27,24 @@
 Watch the complete guided video tour demonstrating the full luxury wedding lifecycle — VIP enquiry intake, touch contract signing, milestone timeline automation, multi-vendor RFQ comparison matrices, double-entry financial settlements with zero margin leakage, and the 5 Phase 8 special features (Readiness Radar, Budget Simulator, Guest QR Portal, Contingency Planner, and Vendor Reliability):
 
 <div align="center">
-(https://youtu.be/a2rSGeVK4qU)
+
+[![Watch on YouTube](https://img.shields.io/badge/YouTube-Watch%20Walkthrough-FF0000?style=for-the-badge&logo=youtube&logoColor=white)](https://youtu.be/a2rSGeVK4qU)
+&nbsp;&nbsp;
+[![Try Live App](https://img.shields.io/badge/🚀%20Open%20Live%20App-royal--knot--web.onrender.com-B8955A?style=for-the-badge&logo=render&logoColor=white)](https://royal-knot-web.onrender.com/)
+
+<br/><br/>
+
+[![The Royal Knot Demo Video](https://img.youtube.com/vi/a2rSGeVK4qU/maxresdefault.jpg)](https://youtu.be/a2rSGeVK4qU)
+
+<p>
+  ▶ <strong><a href="https://youtu.be/a2rSGeVK4qU" target="_blank">Watch Full Walkthrough on YouTube (https://youtu.be/a2rSGeVK4qU)</a></strong> &nbsp;|&nbsp; 
+  🌐 <strong><a href="https://royal-knot-web.onrender.com/" target="_blank">Try The Live Application (https://royal-knot-web.onrender.com/)</a></strong>
+</p>
+
 </div>
 
 ---
+
 ## 🔑 Demonstration User Accounts
 
 All demonstration accounts are configured with the demo password defined in `DEMO_USER_PASSWORD` (default: `RoyalKnot#LocalDev2026`):
@@ -33,8 +56,6 @@ All demonstration accounts are configured with the demo password defined in `DEM
 | **Operations Coordinator** | `operations@royalknot.in` | `RoyalKnot#LocalDev2026` | Day-of Minute Timeline, Readiness Radar, Incident Command, Staff Roster |
 | **Finance Director** | `finance@royalknot.in` | `RoyalKnot#LocalDev2026` | Financial Ledger, RFQ Quotes, Vendor Settlements, Client Invoices |
 | **Administrator** | `admin@royalknot.in` | `RoyalKnot#LocalDev2026` | Admin Console, User Directory, Demo Data Explorer |
-
----
 
 ---
 
@@ -105,7 +126,6 @@ flowchart TB
 3. **Guest Concierge QR Portal**: Tokenized public portal for wedding guests to confirm RSVP attendance, dietary requirements, and access shuttle timings without needing system credentials.
 4. **Contingency & Backup Planner**: Weather and operational emergency protocol activator with indoor venue relocation workflows and post-incident reviews.
 5. **Vendor Reliability Intelligence**: Historical vendor reliability algorithm measuring timeliness, quality, invoice variance, and communication responsiveness.
-
 
 ---
 
