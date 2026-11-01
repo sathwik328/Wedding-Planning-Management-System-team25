@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The Royal Knot — Official System Demonstration Video</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0F0A09;
+      --card-bg: #1B1311;
+      --gold: #E8B978;
+      --gold-dark: #B8955A;
+      --cream: #F5EBDD;
+      --text-muted: #CDBB9C;
+      --border: rgba(232, 185, 120, 0.25);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--cream);
+      font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      min-height: 100vh;
+      line-height: 1.5;
+    }
+    header {
+      border-bottom: 1px solid var(--border);
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(15, 10, 9, 0.95);
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      backdrop-filter: blur(10px);
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: .75rem;
+    }
+    .brand-icon {
+      color: var(--gold);
+      font-size: 1.4rem;
+    }
+    .brand-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.5rem;
+      letter-spacing: .04em;
+      color: #fff;
+    }
+    .brand-sub {
+      font-size: .75rem;
+      letter-spacing: .15em;
+      text-transform: uppercase;
+      color: var(--gold);
+      border-left: 1px solid var(--border);
+      padding-left: .75rem;
+      margin-left: .75rem;
+    }
+    .header-actions {
+      display: flex;
+      gap: .8rem;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: .5rem;
+      background: var(--gold);
+      color: #1B1311;
+      font-weight: 600;
+      font-size: .85rem;
+      padding: .5rem 1.1rem;
+      border-radius: 999px;
+      text-decoration: none;
+      transition: all 0.2s ease;
+      cursor: pointer;
+      border: none;
+    }
+    .btn:hover {
+      background: #f0caa0;
+      transform: translateY(-1px);
+    }
+    .btn-secondary {
+      background: transparent;
+      color: var(--gold);
+      border: 1px solid var(--border);
+    }
+    .btn-secondary:hover {
+      background: rgba(232, 185, 120, 0.1);
+    }
+    .main-container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem 4rem;
+    }
+    .hero-heading {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+    .hero-badge {
+      display: inline-block;
+      font-size: .75rem;
+      text-transform: uppercase;
+      letter-spacing: .2em;
+      color: var(--gold);
+      background: rgba(232, 185, 120, 0.12);
+      border: 1px solid rgba(232, 185, 120, 0.3);
+      padding: .25rem .8rem;
+      border-radius: 999px;
+      margin-bottom: .8rem;
+    }
+    h1 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(2rem, 4vw, 3.2rem);
+      font-weight: 400;
+      color: #fff;
+    }
+    .hero-sub {
+      color: var(--text-muted);
+      font-size: 1rem;
+      max-width: 680px;
+      margin: .5rem auto 0;
+    }
+    .video-grid {
+      display: grid;
+      grid-template-columns: 1fr 400px;
+      gap: 1.8rem;
+      align-items: start;
+    }
+    @media (max-width: 960px) {
+      .video-grid { grid-template-columns: 1fr; }
+    }
+    .video-card {
+      background: #000;
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      overflow: hidden;
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8), 0 0 40px rgba(232, 185, 120, 0.12);
+    }
+    video {
+      width: 100%;
+      height: auto;
+      display: block;
+      background: #000;
+      aspect-ratio: 16 / 9;
+    }
+    .video-meta {
+      padding: 1.2rem 1.5rem;
+      background: var(--card-bg);
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+    .chapters-card {
+      background: var(--card-bg);
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      padding: 1.4rem;
+      position: sticky;
+      top: 5.5rem;
+      max-height: calc(100vh - 7rem);
+      overflow-y: auto;
+    }
+    .chapters-header {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.4rem;
+      color: var(--gold);
+      margin-bottom: .4rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .chapters-sub {
+      font-size: .8rem;
+      color: var(--text-muted);
+      margin-bottom: 1rem;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: .8rem;
+    }
+    .chapter-list {
+      display: flex;
+      flex-direction: column;
+      gap: .45rem;
+    }
+    .chapter-item {
+      display: flex;
+      align-items: center;
+      gap: .8rem;
+      padding: .6rem .85rem;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid transparent;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-align: left;
+    }
+    .chapter-item:hover, .chapter-item.active {
+      background: rgba(232, 185, 120, 0.12);
+      border-color: rgba(232, 185, 120, 0.4);
+    }
+    .chapter-num {
+      font-size: .75rem;
+      color: var(--gold);
+      font-weight: 700;
+      min-width: 22px;
+    }
+    .chapter-title {
+      font-size: .82rem;
+      color: #fff;
+      font-weight: 500;
+      flex: 1;
+      line-height: 1.35;
+    }
+    .chapter-time {
+      font-size: .72rem;
+      color: var(--text-muted);
+      background: rgba(0, 0, 0, 0.45);
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+    .features-section {
+      margin-top: 3.5rem;
+    }
+    .features-heading {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 2rem;
+      color: #fff;
+      margin-bottom: 1.5rem;
+      text-align: center;
+    }
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 1.2rem;
+    }
+    .feature-box {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.4rem;
+      transition: transform 0.2s ease;
+    }
+    .feature-box:hover {
+      transform: translateY(-3px);
+      border-color: var(--gold);
+    }
+    .feature-tag {
+      font-size: .7rem;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--gold);
+      font-weight: 700;
+      margin-bottom: .4rem;
+    }
+    .feature-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.3rem;
+      color: #fff;
+      margin-bottom: .4rem;
+    }
+    .feature-desc {
+      font-size: .82rem;
+      color: var(--text-muted);
+      line-height: 1.45;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="brand">
+      <span class="brand-icon">◈</span>
+      <span class="brand-title">The Royal Knot</span>
+      <span class="brand-sub">Official Demonstration</span>
+    </div>
+    <div class="header-actions">
+      <a href="recordings/the-royal-knot-official-demo.webm" download="The-Royal-Knot-Demo-1080p.webm" class="btn">
+        <span>⬇ Download Video (1080p)</span>
+      </a>
+      <a href="/" class="btn btn-secondary">
+        <span>← Return to Web App</span>
+      </a>
+    </div>
+  </header>
+
+  <div class="main-container">
+    <div class="hero-heading">
+      <span class="hero-badge">System Evaluation Showcase</span>
+      <h1>Full Platform Operations & 5 Special Features</h1>
+      <p class="hero-sub">
+        High-definition walkthrough featuring live lower-left jury HUD annotations. Showcases all 5 special features first, followed by Admin wedding onboarding & planning pipelines, CRM dossiers, and database verification.
+      </p>
+    </div>
+
+    <div class="video-grid">
+      <!-- Left Column: Video Player -->
+      <div class="video-card">
+        <video id="demoVideo" controls autoplay muted playsinline>
+          <source src="recordings/the-royal-knot-official-demo.webm" type="video/webm">
+          Your browser does not support the video tag.
+        </video>
+        <div class="video-meta">
+          <div>
+            <div style="font-weight: 600; color: #fff; font-size: .95rem;">The Royal Knot — Sovereign Wedding Operations System</div>
+            <div style="font-size: .8rem; color: var(--text-muted);">Recorded in Native 1080p (1920×1080) &bull; Chrome Automation Studio</div>
+          </div>
+          <div style="display: flex; gap: .6rem;">
+            <a href="recordings/the-royal-knot-official-demo.webm" download class="btn" style="padding: .4rem .9rem; font-size: .8rem;">
+              Download WebM
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Column: Interactive Chapter Index -->
+      <div class="chapters-card">
+        <div class="chapters-header">
+          <span>Jump to Feature</span>
+          <span style="font-size: .85rem; color: var(--gold); font-family: 'DM Sans', sans-serif;">10 Chapters</span>
+        </div>
+        <div class="chapters-sub">Special features presented first, followed by Admin planning</div>
+        <div class="chapter-list">
+          <button class="chapter-item" onclick="seekVideo(0)">
+            <span class="chapter-num">01</span>
+            <span class="chapter-title">Storytelling Landing & Scroll Animation</span>
+            <span class="chapter-time">0:00</span>
+          </button>
+          <button class="chapter-item" onclick="seekVideo(10)">
+            <span class="chapter-num">02</span>
+            <span class="chapter-title">Operations Command Cockpit Overview</span>
+            <span class="chapter-time">0:10</span>
+          </button>
+          <button class="chapter-item" onclick="seekVideo(16)">
+            <span class="chapter-num">03</span>
+            <span class="chapter-title">★ Feature 1: Wedding Readiness & Risk Radar</span>
+            <span class="chapter-time">0:16</span>
+          </button>
+          <button class="chapter-item" onclick="seekVideo(26)">
+            <span class="chapter-num">04</span>
+            <span class="chapter-title">★ Feature 2: Multi-Scenario Budget Simulator</span>
+            <span class="chapter-time">0:26</span>
+          </button>
+          <button class="chapter-item" onclick="seekVideo(38)">
+            <span class="chapter-num">05</span>
+            <span class="chapter-title">★ Feature 3: Contingency Backup Protocols</span>
+            <span class="chapter-time">0:38</span>
+          </button>
+          <button class="chapter-item" onclick="seekVideo(48)">
+            <span class="chapter-num">06</span>
+            <span class="chapter-title">★ Feature 4: Vendor Reliability Intelligence</span>
+            <span class="chapter-time">0:48</span>
+          </button>
+          <button class="chapter-item" onclick="seekVideo(59)">
+            <span class="chapter-num">07</span>
+            <span class="chapter-title">★ Feature 5: Public Guest Concierge QR Portal</span>
+            <span class="chapter-time">0:59</span>
+          </button>
+          <button class="chapter-item" onclick="seekVideo(72)">
+            <span class="chapter-num">08</span>
+            <span class="chapter-title">Admin Workflow: 15-Stage Planning Roadmap</span>
+            <span class="chapter-time">1:12</span>
+          </button>
+          <button class="chapter-item" onclick="seekVideo(81)">
+            <span class="chapter-num">09</span>
+            <span class="chapter-title">CRM Engine: Client Enquiries & Couple Dossiers</span>
+            <span class="chapter-time">1:21</span>
+          </button>
+          <button class="chapter-item" onclick="seekVideo(89)">
+            <span class="chapter-num">10</span>
+            <span class="chapter-title">Auditable Demo Data Explorer (650+ Records)</span>
+            <span class="chapter-time">1:29</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Feature Summary Cards -->
+    <div class="features-section">
+      <h2 class="features-heading">The 5 Core Innovations Demonstrated</h2>
+      <div class="features-grid">
+        <div class="feature-box">
+          <div class="feature-tag">Special Feature 01</div>
+          <div class="feature-title">Readiness & Risk Radar</div>
+          <div class="feature-desc">4-pillar mathematical scoring (0–100) aggregating milestone tasks, vendor punctuality, and incident stability.</div>
+        </div>
+        <div class="feature-box">
+          <div class="feature-tag">Special Feature 02</div>
+          <div class="feature-title">Multi-Scenario Simulator</div>
+          <div class="feature-desc">Dynamic guest scaling (100–1200) across 4 luxury tiers with live profit margin curve protection.</div>
+        </div>
+        <div class="feature-box">
+          <div class="feature-tag">Special Feature 03</div>
+          <div class="feature-title">Contingency Protocols</div>
+          <div class="feature-desc">Certified backup venues, standby DG generators, internal incident commanders, and single-click emergency relocation.</div>
+        </div>
+        <div class="feature-box">
+          <div class="feature-tag">Special Feature 04</div>
+          <div class="feature-title">Vendor Reliability Intelligence</div>
+          <div class="feature-desc">Pre-contract dispute index, punctuality ratings, certified reliability tiers, and active partner audit history.</div>
+        </div>
+        <div class="feature-box">
+          <div class="feature-tag">Special Feature 05</div>
+          <div class="feature-title">Guest Concierge QR Portal</div>
+          <div class="feature-desc">Zero-friction public guest itinerary, Google Maps venue links, and instant household RSVP capture.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const video = document.getElementById('demoVideo');
+    function seekVideo(seconds) {
+      if (!video) return;
+      video.currentTime = seconds;
+      video.play();
+    }
+  </script>
+
+</body>
+</html>
