@@ -210,4 +210,53 @@ describe("Phase 4: Authentication Routes & Session Cookie Tests", () => {
     expect(blockedData.error).toContain("Too many failed login attempts");
     expect(blockedRes.headers.get("retry-after")).toBeDefined();
   });
+
+  it("POST /api/auth/register creates a new user, sets HTTP-only session cookie, and returns safe profile", async () => {
+    const regEmail = `test.planner.${Date.now()}@royalknot.in`;
+    const res = await fetch(`${baseUrl}/api/auth/register`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "x-forwarded-for": "10.0.0.50" },
+      body: JSON.stringify({
+        name: "Test Royal Coordinator",
+        email: regEmail,
+        password: "SecretSecurePass2026",
+        role: "COORDINATOR",
+        phone: "+919829099999"
+      })
+    });
+
+    expect(res.status).toBe(201);
+    const data = await res.json();
+    expect(data.success).toBe(true);
+    expect(data.user.email).toBe(regEmail);
+    expect(data.user.role).toBe("COORDINATOR");
+    expect(data.user.name).toBe("Test Royal Coordinator");
+    expect(data.csrfToken).toBeDefined();
+
+    // Verify session cookie was set
+    const setCookie = res.headers.get("set-cookie");
+    expect(setCookie).toBeDefined();
+    expect(setCookie).toContain("royal_knot_session=");
+    expect(setCookie).toContain("HttpOnly");
+
+    // Attempting to register again with same email returns 409 Conflict
+    const dupRes = await fetch(`${baseUrl}/api/auth/register`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "x-forwarded-for": "10.0.0.50" },
+      body: JSON.stringify({
+        name: "Duplicate User",
+        email: regEmail,
+        password: "SecretSecurePass2026",
+        role: "COORDINATOR"
+      })
+    });
+
+    expect(dupRes.status).toBe(409);
+    const dupData = await dupRes.json();
+    expect(dupData.error).toContain("already registered");
+
+    // Cleanup created test user
+    await prisma.session.deleteMany({ where: { userId: data.user.id } });
+    await prisma.user.delete({ where: { id: data.user.id } });
+  });
 });

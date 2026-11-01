@@ -183,8 +183,8 @@ export const WeddingModule: React.FC = () => {
       {/* Header & Controls */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div>
-          <h2 className="font-serif text-2xl font-bold text-[#5B1424]">Wedding Management & Task Engine</h2>
-          <p className="text-xs text-[#718096]">
+          <h2 className="font-serif text-2xl sm:text-3xl font-light text-[#231E1B]">Wedding Management & Task Engine</h2>
+          <p className="text-xs text-[#7A6E63]">
             32 Full-Service / 20 Partial-Service milestone pipelines with automated state verification
           </p>
         </div>
@@ -192,7 +192,7 @@ export const WeddingModule: React.FC = () => {
         <div className="flex flex-wrap items-center gap-2">
           {/* Wedding Switcher */}
           <select
-            className="text-xs border border-[#E7E2D8] rounded px-3 py-1.5 bg-white font-medium text-[#1E2229] focus:ring-1 focus:ring-[#5B1424] focus:outline-none max-w-xs"
+            className="text-xs border border-[#EDE5DC] rounded px-3 py-1.5 bg-white font-medium text-[#231E1B] focus:ring-1 focus:ring-[#231E1B] focus:outline-none max-w-xs"
             value={activeWeddingId || ''}
             onChange={(e) => setSelectedWeddingId(e.target.value)}
           >
@@ -210,7 +210,7 @@ export const WeddingModule: React.FC = () => {
             isLoading={backfillMutation.isPending}
             leftIcon={<RefreshCw className="w-3.5 h-3.5" />}
           >
-            Verify Pipeline
+            Sync Tasks
           </Button>
 
           <Button
@@ -220,7 +220,7 @@ export const WeddingModule: React.FC = () => {
             disabled={!activeWeddingId}
             leftIcon={<PlusCircle className="w-4 h-4" />}
           >
-            Bespoke Task
+            Add Task
           </Button>
 
           <Button
@@ -236,49 +236,49 @@ export const WeddingModule: React.FC = () => {
 
       {activeWedding && (
         /* Selected Wedding Overview Banner */
-        <Card className="border-l-4 border-l-[#5B1424] bg-white">
+        <Card className="border-l-4 border-l-[#231E1B] bg-white">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
               <div className="flex items-center gap-2">
                 <Badge variant={activeWedding.packageType === 'FULL_SERVICE' ? 'wine' : 'gold'} size="sm">
                   {activeWedding.packageType.replace('_', ' ')}
                 </Badge>
-                <span className="text-xs text-[#718096] flex items-center gap-1">
-                  <MapPin className="w-3.5 h-3.5 text-[#C5A059]" />
+                <span className="text-xs text-[#7A6E63] flex items-center gap-1">
+                  <MapPin className="w-3.5 h-3.5 text-[#B89358]" />
                   {activeWedding.venueName}, {activeWedding.primaryCity}
                 </span>
               </div>
-              <h3 className="font-serif text-xl font-bold text-[#1E2229] mt-1">{activeWedding.title}</h3>
-              <div className="flex items-center gap-4 text-xs text-[#718096] mt-2">
+              <h3 className="font-serif text-xl font-light text-[#231E1B] text-[#231E1B] mt-1">{activeWedding.title}</h3>
+              <div className="flex items-center gap-4 text-xs text-[#7A6E63] mt-2">
                 <span className="flex items-center gap-1">
-                  <Calendar className="w-3.5 h-3.5 text-[#5B1424]" />
+                  <Calendar className="w-3.5 h-3.5 text-[#231E1B]" />
                   {new Date(activeWedding.startDate).toLocaleDateString()} to {new Date(activeWedding.endDate).toLocaleDateString()}
                 </span>
                 <span>•</span>
                 <span className="flex items-center gap-1">
-                  <Users className="w-3.5 h-3.5 text-[#5B1424]" />
+                  <Users className="w-3.5 h-3.5 text-[#231E1B]" />
                   {activeWedding.targetGuestCount} Royal Guests
                 </span>
                 <span>•</span>
-                <span className="font-mono font-bold text-[#5B1424]">
+                <span className="font-mono font-bold text-[#231E1B]">
                   Budget: {formatPaiseCompact(activeWedding.totalBudgetPaise)}
                 </span>
               </div>
             </div>
 
             {/* Progress Bar Widget */}
-            <div className="w-full md:w-64 bg-[#F7F4EE] p-3 rounded border border-[#E7E2D8]">
+            <div className="w-full md:w-64 bg-[#FAF6F1] p-3 rounded border border-[#EDE5DC]">
               <div className="flex justify-between items-center text-xs mb-1.5">
-                <span className="font-medium text-[#1E2229]">Milestone Progress:</span>
-                <span className="font-mono font-bold text-[#5B1424]">{activeWedding.progressPercent}%</span>
+                <span className="font-medium text-[#231E1B]">Milestone Progress:</span>
+                <span className="font-mono font-bold text-[#231E1B]">{activeWedding.progressPercent}%</span>
               </div>
-              <div className="w-full bg-[#E7E2D8] h-2 rounded-full overflow-hidden">
+              <div className="w-full bg-[#EDE5DC] h-2 rounded-full overflow-hidden">
                 <div
-                  className="bg-[#5B1424] h-full transition-all duration-300 rounded-full"
+                  className="bg-[#231E1B] h-full transition-all duration-300 rounded-full"
                   style={{ width: `${activeWedding.progressPercent}%` }}
                 />
               </div>
-              <div className="flex justify-between text-[11px] text-[#718096] mt-1">
+              <div className="flex justify-between text-[11px] text-[#7A6E63] mt-1">
                 <span>{activeWedding.completedTasks} completed</span>
                 <span>{activeWedding.totalTasks} total milestones</span>
               </div>
@@ -292,15 +292,15 @@ export const WeddingModule: React.FC = () => {
         <div className="flex flex-col md:flex-row gap-3 items-center justify-between text-xs">
           {/* Stage Filters */}
           <div className="flex flex-wrap items-center gap-1.5">
-            <span className="font-medium text-[#718096] mr-1">Stage:</span>
+            <span className="font-medium text-[#7A6E63] mr-1">Stage:</span>
             {['ALL', 'TO_PLAN', 'IN_PROGRESS', 'BLOCKED', 'DONE'].map((st) => (
               <button
                 key={st}
                 onClick={() => setStageFilter(st)}
                 className={`px-2.5 py-1 rounded transition-colors ${
                   stageFilter === st
-                    ? 'bg-[#5B1424] text-white font-medium'
-                    : 'bg-[#F7F4EE] text-[#4A5568] hover:bg-[#E7E2D8]'
+                    ? 'bg-[#231E1B] text-white font-medium'
+                    : 'bg-[#FAF6F1] text-[#4A5568] hover:bg-[#EDE5DC]'
                 }`}
               >
                 {st.replace('_', ' ')}
@@ -310,7 +310,7 @@ export const WeddingModule: React.FC = () => {
 
           {/* Category Filters */}
           <div className="flex flex-wrap items-center gap-1.5">
-            <span className="font-medium text-[#718096] mr-1">Category:</span>
+            <span className="font-medium text-[#7A6E63] mr-1">Category:</span>
             {[
               { id: 'ALL', label: 'All' },
               { id: 'VENUE_DESIGN', label: 'Venue' },
@@ -323,8 +323,8 @@ export const WeddingModule: React.FC = () => {
                 onClick={() => setCategoryFilter(cat.id)}
                 className={`px-2 py-0.5 rounded text-[11px] transition-colors ${
                   categoryFilter === cat.id
-                    ? 'bg-[#C5A059] text-white font-medium'
-                    : 'bg-[#F7F4EE] text-[#4A5568] hover:bg-[#E7E2D8]'
+                    ? 'bg-[#B89358] text-white font-medium'
+                    : 'bg-[#FAF6F1] text-[#4A5568] hover:bg-[#EDE5DC]'
                 }`}
               >
                 {cat.label}
@@ -337,15 +337,15 @@ export const WeddingModule: React.FC = () => {
       {/* Tasks Table */}
       <Card>
         {tasksLoading ? (
-          <div className="py-12 text-center text-xs text-[#718096]">Loading milestone tasks...</div>
+          <div className="py-12 text-center text-xs text-[#7A6E63]">Loading milestone tasks...</div>
         ) : tasks.length === 0 ? (
-          <div className="py-12 text-center text-xs text-[#718096]">
+          <div className="py-12 text-center text-xs text-[#7A6E63]">
             No tasks match the active filters.
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-xs text-left">
-              <thead className="bg-[#F7F4EE] text-[#1E2229] border-b border-[#E7E2D8]">
+              <thead className="bg-[#FAF6F1] text-[#231E1B] border-b border-[#EDE5DC]">
                 <tr>
                   <th className="px-4 py-3 font-semibold">Milestone Deliverable</th>
                   <th className="px-4 py-3 font-semibold">Category</th>
@@ -356,11 +356,11 @@ export const WeddingModule: React.FC = () => {
                   <th className="px-4 py-3 font-semibold text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#E7E2D8]">
+              <tbody className="divide-y divide-[#EDE5DC]">
                 {tasks.map((task) => (
                   <tr key={task.id} className="hover:bg-amber-50/20">
                     <td className="px-4 py-3 max-w-sm">
-                      <div className="font-semibold text-[#1E2229] flex items-center gap-1.5">
+                      <div className="font-semibold text-[#231E1B] flex items-center gap-1.5">
                         <span>{task.title}</span>
                         {task.isCustom && (
                           <span className="text-[9px] bg-purple-50 text-purple-700 px-1 py-0.2 rounded border border-purple-200">
@@ -380,10 +380,10 @@ export const WeddingModule: React.FC = () => {
                     <td className="px-4 py-3 text-[#4A5568]">
                       {task.assignedTo ? (
                         <div className="flex items-center gap-1.5">
-                          <User className="w-3.5 h-3.5 text-[#C5A059]" />
+                          <User className="w-3.5 h-3.5 text-[#B89358]" />
                           <div>
-                            <span className="font-medium text-[#1E2229]">{task.assignedTo.name}</span>
-                            <span className="text-[10px] text-[#718096] block">
+                            <span className="font-medium text-[#231E1B]">{task.assignedTo.name}</span>
+                            <span className="text-[10px] text-[#7A6E63] block">
                               {task.assignedTo.role.replace('_', ' ')}
                             </span>
                           </div>
@@ -393,7 +393,7 @@ export const WeddingModule: React.FC = () => {
                       )}
                     </td>
 
-                    <td className="px-4 py-3 text-[#1E2229] font-mono">
+                    <td className="px-4 py-3 text-[#231E1B] font-mono">
                       {new Date(task.dueDate).toLocaleDateString()}
                     </td>
 
@@ -403,7 +403,7 @@ export const WeddingModule: React.FC = () => {
 
                     <td className="px-4 py-3">
                       <select
-                        className={`text-[11px] px-2 py-1 rounded font-medium border border-[#E7E2D8] ${
+                        className={`text-[11px] px-2 py-1 rounded font-medium border border-[#EDE5DC] ${
                           task.stage === 'DONE'
                             ? 'bg-emerald-50 text-emerald-800 border-emerald-300'
                             : task.stage === 'IN_PROGRESS'

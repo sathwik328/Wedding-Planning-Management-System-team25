@@ -184,20 +184,20 @@ export const FinanceLedgerPage: React.FC = () => {
       {/* Page Header & Wedding Selector */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h2 className="font-serif text-2xl font-bold text-[#5B1424]">
+          <h2 className="font-serif text-2xl sm:text-3xl font-light text-[#231E1B]">
             Audited Financial Ledger & Cash Flow
           </h2>
-          <p className="text-xs text-[#718096] mt-0.5">
-            Developer B Scope • Strict integer BigInt paise, 6-vector anomaly watchdog & baseline reconciliation
+          <p className="text-xs text-[#7A6E63] mt-0.5">
+            Financial Accounting & Audit • Authoritative ledger, invoice reconciliation, and net cash flow position
           </p>
         </div>
 
         <div className="flex items-center gap-3">
-          <span className="text-xs font-semibold text-[#1E2229]">Select Wedding:</span>
+          <span className="text-xs font-semibold text-[#231E1B]">Select Wedding:</span>
           <select
             value={selectedWeddingId}
             onChange={(e) => setSelectedWeddingId(e.target.value)}
-            className="text-xs px-3 py-1.5 border border-[#E7E2D8] rounded bg-white font-medium text-[#1E2229] focus:outline-none focus:ring-1 focus:ring-[#C5A059]"
+            className="text-xs px-3 py-1.5 border border-[#EDE5DC] rounded bg-white font-medium text-[#231E1B] focus:outline-none focus:ring-1 focus:ring-[#B89358]"
           >
             {weddings.map((w) => (
               <option key={w.id} value={w.id}>
@@ -227,8 +227,8 @@ export const FinanceLedgerPage: React.FC = () => {
             action={<Badge variant="success" size="sm">Cleared Cash</Badge>}
           >
             <div className="space-y-3">
-              <div className="flex justify-between items-center text-xs pb-2 border-b border-[#E7E2D8]">
-                <span className="text-[#718096] flex items-center gap-1.5">
+              <div className="flex justify-between items-center text-xs pb-2 border-b border-[#EDE5DC]">
+                <span className="text-[#7A6E63] flex items-center gap-1.5">
                   <ArrowUpRight className="w-3.5 h-3.5 text-emerald-600" />
                   Cleared Client Inflows:
                 </span>
@@ -237,8 +237,8 @@ export const FinanceLedgerPage: React.FC = () => {
                 </span>
               </div>
 
-              <div className="flex justify-between items-center text-xs pb-2 border-b border-[#E7E2D8]">
-                <span className="text-[#718096] flex items-center gap-1.5">
+              <div className="flex justify-between items-center text-xs pb-2 border-b border-[#EDE5DC]">
+                <span className="text-[#7A6E63] flex items-center gap-1.5">
                   <ArrowDownRight className="w-3.5 h-3.5 text-rose-600" />
                   Cleared Vendor Outflows:
                 </span>
@@ -247,8 +247,8 @@ export const FinanceLedgerPage: React.FC = () => {
                 </span>
               </div>
 
-              <div className="flex justify-between items-center text-xs pb-2 border-b border-[#E7E2D8]">
-                <span className="text-[#718096] flex items-center gap-1.5">
+              <div className="flex justify-between items-center text-xs pb-2 border-b border-[#EDE5DC]">
+                <span className="text-[#7A6E63] flex items-center gap-1.5">
                   <ArrowDownRight className="w-3.5 h-3.5 text-stone-600" />
                   Direct Cleared Expenses:
                 </span>
@@ -258,11 +258,11 @@ export const FinanceLedgerPage: React.FC = () => {
               </div>
 
               <div className="flex justify-between items-center text-sm pt-1">
-                <span className="font-semibold text-[#1E2229]">Net Cash Position:</span>
+                <span className="font-semibold text-[#231E1B]">Net Cash Position:</span>
                 <span
                   className={`font-mono font-bold text-base ${
                     BigInt(ledger.cashFlow.netActualCashFlowPaise) >= 0n
-                      ? 'text-[#5B1424]'
+                      ? 'text-[#231E1B]'
                       : 'text-rose-700'
                   }`}
                 >
@@ -279,29 +279,29 @@ export const FinanceLedgerPage: React.FC = () => {
             action={<Badge variant="gold" size="sm">Accrual Engine</Badge>}
           >
             <div className="space-y-3">
-              <div className="flex justify-between items-center text-xs pb-2 border-b border-[#E7E2D8]">
-                <span className="text-[#718096]">Invoiced Client Revenue:</span>
-                <span className="font-mono font-bold text-[#1E2229]">
+              <div className="flex justify-between items-center text-xs pb-2 border-b border-[#EDE5DC]">
+                <span className="text-[#7A6E63]">Invoiced Client Revenue:</span>
+                <span className="font-mono font-bold text-[#231E1B]">
                   {formatPaiseToINR(ledger.accrual.invoicedClientRevenuePaise)}
                 </span>
               </div>
 
-              <div className="flex justify-between items-center text-xs pb-2 border-b border-[#E7E2D8]">
-                <span className="text-[#718096]">Vendor Bill Commitments:</span>
-                <span className="font-mono font-bold text-[#1E2229]">
+              <div className="flex justify-between items-center text-xs pb-2 border-b border-[#EDE5DC]">
+                <span className="text-[#7A6E63]">Vendor Bill Commitments:</span>
+                <span className="font-mono font-bold text-[#231E1B]">
                   {formatPaiseToINR(ledger.accrual.recognizedVendorExpensesPaise)}
                 </span>
               </div>
 
-              <div className="flex justify-between items-center text-xs pb-2 border-b border-[#E7E2D8]">
-                <span className="text-[#718096]">Direct Pass-Throughs:</span>
-                <span className="font-mono text-[#718096]">
+              <div className="flex justify-between items-center text-xs pb-2 border-b border-[#EDE5DC]">
+                <span className="text-[#7A6E63]">Direct Pass-Throughs:</span>
+                <span className="font-mono text-[#7A6E63]">
                   {formatPaiseToINR(ledger.accrual.directAgencyExpensesPaise)}
                 </span>
               </div>
 
               <div className="flex justify-between items-center text-sm pt-1">
-                <span className="font-semibold text-[#1E2229]">Accrual Net Profit:</span>
+                <span className="font-semibold text-[#231E1B]">Accrual Net Profit:</span>
                 <span className="font-mono font-bold text-emerald-800 text-base">
                   {formatPaiseToINR(ledger.accrual.operatingProfitPaise)}
                 </span>
@@ -378,13 +378,13 @@ export const FinanceLedgerPage: React.FC = () => {
         subtitle="Manage client contracts, invoice issuance, and cleared NEFT/RTGS collections."
       >
         {invoices.length === 0 ? (
-          <p className="text-xs text-[#718096] italic py-4">
+          <p className="text-xs text-[#7A6E63] italic py-4">
             No client invoices generated for this wedding yet.
           </p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-xs text-left">
-              <thead className="bg-[#F7F4EE] text-[#1E2229] border-b border-[#E7E2D8]">
+              <thead className="bg-[#FAF6F1] text-[#231E1B] border-b border-[#EDE5DC]">
                 <tr>
                   <th className="px-4 py-2.5 font-semibold">Invoice No</th>
                   <th className="px-4 py-2.5 font-semibold">Type</th>
@@ -395,7 +395,7 @@ export const FinanceLedgerPage: React.FC = () => {
                   <th className="px-4 py-2.5 font-semibold text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#E7E2D8]">
+              <tbody className="divide-y divide-[#EDE5DC]">
                 {invoices.map((inv) => {
                   let clearedBig = 0n;
                   for (const p of inv.payments || []) {
@@ -404,8 +404,8 @@ export const FinanceLedgerPage: React.FC = () => {
                   const isPaid = inv.status === 'PAID';
 
                   return (
-                    <tr key={inv.id} className="hover:bg-[#FDFBF7] transition-colors">
-                      <td className="px-4 py-3 font-mono font-medium text-[#1E2229]">
+                    <tr key={inv.id} className="hover:bg-[#FAF8F5] transition-colors">
+                      <td className="px-4 py-3 font-mono font-medium text-[#231E1B]">
                         {inv.invoiceNumber}
                       </td>
                       <td className="px-4 py-3">
@@ -413,10 +413,10 @@ export const FinanceLedgerPage: React.FC = () => {
                           {inv.invoiceType.replace(/_/g, ' ')}
                         </Badge>
                       </td>
-                      <td className="px-4 py-3 font-mono text-[#718096]">
+                      <td className="px-4 py-3 font-mono text-[#7A6E63]">
                         {new Date(inv.dueDate).toLocaleDateString()}
                       </td>
-                      <td className="px-4 py-3 font-mono font-bold text-[#1E2229]">
+                      <td className="px-4 py-3 font-mono font-bold text-[#231E1B]">
                         {formatPaiseToINR(inv.totalAmountPaise)}
                       </td>
                       <td className="px-4 py-3 font-mono font-semibold text-emerald-800">
@@ -476,13 +476,13 @@ export const FinanceLedgerPage: React.FC = () => {
         subtitle="Agreed baseline quotation variance auditing, advances, and final disbursements."
       >
         {bills.length === 0 ? (
-          <p className="text-xs text-[#718096] italic py-4">
+          <p className="text-xs text-[#7A6E63] italic py-4">
             No vendor bills submitted for contracted partners in this wedding yet.
           </p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-xs text-left">
-              <thead className="bg-[#F7F4EE] text-[#1E2229] border-b border-[#E7E2D8]">
+              <thead className="bg-[#FAF6F1] text-[#231E1B] border-b border-[#EDE5DC]">
                 <tr>
                   <th className="px-4 py-2.5 font-semibold">Bill No</th>
                   <th className="px-4 py-2.5 font-semibold">Partner</th>
@@ -493,7 +493,7 @@ export const FinanceLedgerPage: React.FC = () => {
                   <th className="px-4 py-2.5 font-semibold text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#E7E2D8]">
+              <tbody className="divide-y divide-[#EDE5DC]">
                 {bills.map((b) => {
                   const baselineBig = BigInt(
                     b.weddingVendor.agreedBaselineAmountPaise
@@ -503,17 +503,17 @@ export const FinanceLedgerPage: React.FC = () => {
                   const isPaid = b.status === 'PAID';
 
                   return (
-                    <tr key={b.id} className="hover:bg-[#FDFBF7] transition-colors">
-                      <td className="px-4 py-3 font-mono font-medium text-[#1E2229]">
+                    <tr key={b.id} className="hover:bg-[#FAF8F5] transition-colors">
+                      <td className="px-4 py-3 font-mono font-medium text-[#231E1B]">
                         {b.billNumber}
                       </td>
-                      <td className="px-4 py-3 font-serif font-semibold text-[#1E2229]">
+                      <td className="px-4 py-3 font-serif font-semibold text-[#231E1B]">
                         {b.weddingVendor?.vendor?.businessName}
                       </td>
-                      <td className="px-4 py-3 font-mono text-[#718096]">
+                      <td className="px-4 py-3 font-mono text-[#7A6E63]">
                         {formatPaiseToINR(baselineBig.toString())}
                       </td>
-                      <td className="px-4 py-3 font-mono font-bold text-[#1E2229]">
+                      <td className="px-4 py-3 font-mono font-bold text-[#231E1B]">
                         {formatPaiseToINR(b.totalBilledPaise)}
                       </td>
                       <td className="px-4 py-3">

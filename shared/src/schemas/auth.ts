@@ -5,11 +5,24 @@ import { USER_ROLES } from "../constants/roles.js";
  * Zod schema for client login submissions
  */
 export const LoginSchema = z.object({
-  email: z.string().email("A valid corporate email address is required"),
+  email: z.string().email("A valid corporate or personal email address is required"),
   password: z.string().min(6, "Password must be at least 6 characters")
 });
 
 export type LoginInput = z.infer<typeof LoginSchema>;
+
+/**
+ * Zod schema for client user registration submissions
+ */
+export const RegisterSchema = z.object({
+  name: z.string().min(2, "Full name must be at least 2 characters"),
+  email: z.string().email("A valid email address is required"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
+  role: z.enum(USER_ROLES).default("COORDINATOR"),
+  phone: z.string().optional()
+});
+
+export type RegisterInput = z.infer<typeof RegisterSchema>;
 
 /**
  * Zod schema for authenticated user profile (never exposes passwordHash)

@@ -140,8 +140,8 @@ export const CrmModule: React.FC = () => {
       {/* Module Title and Actions */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="font-serif text-2xl font-bold text-[#5B1424]">VIP Client CRM & Enquiries</h2>
-          <p className="text-xs text-[#718096]">
+          <h2 className="font-serif text-2xl sm:text-3xl font-light text-[#231E1B]">VIP Client CRM & Enquiries</h2>
+          <p className="text-xs text-[#7A6E63]">
             Lead intake, consultation scheduling, and couple dossier management
           </p>
         </div>
@@ -163,19 +163,19 @@ export const CrmModule: React.FC = () => {
             onClick={() => setIsEnquiryModalOpen(true)}
             leftIcon={<UserPlus className="w-4 h-4" />}
           >
-            Create VIP Enquiry
+            New Client Enquiry
           </Button>
         </div>
       </div>
 
       {/* Sub-Tabs: Enquiries vs Couple Dossiers */}
-      <div className="flex space-x-2 border-b border-[#E7E2D8]">
+      <div className="flex space-x-2 border-b border-[#EDE5DC]">
         <button
           onClick={() => setActiveTab('enquiries')}
           className={`pb-2 px-3 text-xs font-semibold flex items-center gap-2 border-b-2 transition-colors ${
             activeTab === 'enquiries'
-              ? 'border-[#5B1424] text-[#5B1424]'
-              : 'border-transparent text-[#718096] hover:text-[#1E2229]'
+              ? 'border-[#231E1B] text-[#231E1B]'
+              : 'border-transparent text-[#7A6E63] hover:text-[#231E1B]'
           }`}
         >
           <Users className="w-4 h-4" />
@@ -185,8 +185,8 @@ export const CrmModule: React.FC = () => {
           onClick={() => setActiveTab('couples')}
           className={`pb-2 px-3 text-xs font-semibold flex items-center gap-2 border-b-2 transition-colors ${
             activeTab === 'couples'
-              ? 'border-[#5B1424] text-[#5B1424]'
-              : 'border-transparent text-[#718096] hover:text-[#1E2229]'
+              ? 'border-[#231E1B] text-[#231E1B]'
+              : 'border-transparent text-[#7A6E63] hover:text-[#231E1B]'
           }`}
         >
           <FileCheck className="w-4 h-4" />
@@ -201,13 +201,13 @@ export const CrmModule: React.FC = () => {
             <div className="flex flex-col md:flex-row gap-3 items-center justify-between">
               {/* Search input */}
               <div className="relative w-full md:w-80">
-                <Search className="w-4 h-4 absolute left-3 top-2.5 text-[#718096]" />
+                <Search className="w-4 h-4 absolute left-3 top-2.5 text-[#7A6E63]" />
                 <input
                   type="text"
                   placeholder="Search couples, email, phone, theme..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-9 pr-3 py-1.5 text-xs border border-[#E7E2D8] rounded focus:ring-1 focus:ring-[#5B1424] focus:outline-none"
+                  className="w-full pl-9 pr-3 py-1.5 text-xs border border-[#EDE5DC] rounded focus:ring-1 focus:ring-[#231E1B] focus:outline-none"
                 />
               </div>
 
@@ -219,8 +219,8 @@ export const CrmModule: React.FC = () => {
                     onClick={() => setStatusFilter(status)}
                     className={`px-2.5 py-1 text-xs rounded transition-colors ${
                       statusFilter === status
-                        ? 'bg-[#5B1424] text-white font-medium'
-                        : 'bg-[#F7F4EE] text-[#4A5568] hover:bg-[#E7E2D8]'
+                        ? 'bg-[#231E1B] text-white font-medium'
+                        : 'bg-[#FAF6F1] text-[#4A5568] hover:bg-[#EDE5DC]'
                     }`}
                   >
                     {status.replace('_', ' ')}
@@ -233,17 +233,17 @@ export const CrmModule: React.FC = () => {
           {/* Enquiries Table */}
           <Card>
             {enquiriesLoading ? (
-              <div className="py-12 text-center text-xs text-[#718096]">
+              <div className="py-12 text-center text-xs text-[#7A6E63]">
                 Loading luxury enquiries...
               </div>
             ) : enquiries.length === 0 ? (
-              <div className="py-12 text-center text-xs text-[#718096]">
+              <div className="py-12 text-center text-xs text-[#7A6E63]">
                 No wedding enquiries found matching the criteria.
               </div>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-xs text-left">
-                  <thead className="bg-[#F7F4EE] text-[#1E2229] border-b border-[#E7E2D8]">
+                  <thead className="bg-[#FAF6F1] text-[#231E1B] border-b border-[#EDE5DC]">
                     <tr>
                       <th className="px-4 py-3 font-semibold">Couple & Contact</th>
                       <th className="px-4 py-3 font-semibold">Target Date</th>
@@ -253,24 +253,24 @@ export const CrmModule: React.FC = () => {
                       <th className="px-4 py-3 font-semibold text-right">Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-[#E7E2D8]">
+                  <tbody className="divide-y divide-[#EDE5DC]">
                     {enquiries.map((enquiry) => (
                       <tr key={enquiry.id} className="hover:bg-amber-50/20">
                         <td className="px-4 py-3">
-                          <div className="font-semibold text-[#1E2229]">{enquiry.coupleNames}</div>
-                          <div className="text-[11px] text-[#718096] flex items-center gap-1 mt-0.5">
+                          <div className="font-semibold text-[#231E1B]">{enquiry.coupleNames}</div>
+                          <div className="text-[11px] text-[#7A6E63] flex items-center gap-1 mt-0.5">
                             <Mail className="w-3 h-3" />
                             <span>{enquiry.primaryEmail}</span>
                           </div>
-                          <div className="text-[11px] text-[#718096] flex items-center gap-1 mt-0.5">
+                          <div className="text-[11px] text-[#7A6E63] flex items-center gap-1 mt-0.5">
                             <Phone className="w-3 h-3" />
                             <span>{enquiry.primaryPhone}</span>
                           </div>
                         </td>
 
-                        <td className="px-4 py-3 text-[#1E2229]">
+                        <td className="px-4 py-3 text-[#231E1B]">
                           <div className="flex items-center gap-1">
-                            <Calendar className="w-3.5 h-3.5 text-[#C5A059]" />
+                            <Calendar className="w-3.5 h-3.5 text-[#B89358]" />
                             <span>{new Date(enquiry.roughDate).toLocaleDateString()}</span>
                           </div>
                           {enquiry.consultationDate && (
@@ -282,20 +282,20 @@ export const CrmModule: React.FC = () => {
                         </td>
 
                         <td className="px-4 py-3">
-                          <div className="font-mono font-bold text-[#5B1424]">
+                          <div className="font-mono font-bold text-[#231E1B]">
                             {formatPaiseCompact(enquiry.budgetCeilingPaise)}
                           </div>
-                          <div className="text-[11px] text-[#718096] mt-0.5">
+                          <div className="text-[11px] text-[#7A6E63] mt-0.5">
                             ~{enquiry.estimatedGuests} Royal Guests
                           </div>
                         </td>
 
                         <td className="px-4 py-3 text-[#4A5568] max-w-xs">
                           {enquiry.themePreference && (
-                            <div className="font-medium text-[#1E2229] truncate">{enquiry.themePreference}</div>
+                            <div className="font-medium text-[#231E1B] truncate">{enquiry.themePreference}</div>
                           )}
                           {enquiry.notes && (
-                            <div className="text-[11px] text-[#718096] line-clamp-2 mt-0.5">{enquiry.notes}</div>
+                            <div className="text-[11px] text-[#7A6E63] line-clamp-2 mt-0.5">{enquiry.notes}</div>
                           )}
                         </td>
 
@@ -348,13 +348,13 @@ export const CrmModule: React.FC = () => {
       {activeTab === 'couples' && (
         <Card>
           {couplesLoading ? (
-            <div className="py-12 text-center text-xs text-[#718096]">Loading couple dossiers...</div>
+            <div className="py-12 text-center text-xs text-[#7A6E63]">Loading couple dossiers...</div>
           ) : couples.length === 0 ? (
-            <div className="py-12 text-center text-xs text-[#718096]">No couple dossiers created yet.</div>
+            <div className="py-12 text-center text-xs text-[#7A6E63]">No couple dossiers created yet.</div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-xs text-left">
-                <thead className="bg-[#F7F4EE] text-[#1E2229] border-b border-[#E7E2D8]">
+                <thead className="bg-[#FAF6F1] text-[#231E1B] border-b border-[#EDE5DC]">
                   <tr>
                     <th className="px-4 py-3 font-semibold">Couple Names</th>
                     <th className="px-4 py-3 font-semibold">Contact Details</th>
@@ -364,22 +364,22 @@ export const CrmModule: React.FC = () => {
                     <th className="px-4 py-3 font-semibold text-right">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#E7E2D8]">
+                <tbody className="divide-y divide-[#EDE5DC]">
                   {couples.map((couple) => (
                     <tr key={couple.id} className="hover:bg-amber-50/20">
                       <td className="px-4 py-3">
-                        <div className="font-semibold text-[#1E2229]">
+                        <div className="font-semibold text-[#231E1B]">
                           {couple.partnerOneName} & {couple.partnerTwoName}
                         </div>
                       </td>
                       <td className="px-4 py-3 text-[#4A5568]">
                         <div>{couple.email}</div>
-                        <div className="text-[11px] text-[#718096]">{couple.phone}</div>
+                        <div className="text-[11px] text-[#7A6E63]">{couple.phone}</div>
                       </td>
-                      <td className="px-4 py-3 text-[#718096]">
+                      <td className="px-4 py-3 text-[#7A6E63]">
                         {couple.address ? (
                           <div className="flex items-center gap-1">
-                            <MapPin className="w-3 h-3 text-[#C5A059]" />
+                            <MapPin className="w-3 h-3 text-[#B89358]" />
                             <span>{couple.address}</span>
                           </div>
                         ) : (
@@ -399,7 +399,7 @@ export const CrmModule: React.FC = () => {
                         {couple.wedding ? (
                           <Badge variant="wine" dot>{couple.wedding.venueName}</Badge>
                         ) : (
-                          <span className="text-[11px] text-[#718096]">Pre-contract</span>
+                          <span className="text-[11px] text-[#7A6E63]">Pre-contract</span>
                         )}
                       </td>
                       <td className="px-4 py-3 text-right">

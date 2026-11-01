@@ -225,16 +225,16 @@ export const OperationsDashboard: React.FC = () => {
       {/* Top Controls & Switcher */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div>
-          <h2 className="font-serif text-2xl font-bold text-[#5B1424]">Day-of Operations Cockpit</h2>
-          <p className="text-xs text-[#718096]">
-            Minute-by-minute ceremonial timeline, vendor arrival radar & live incident dispatch
+          <h2 className="font-serif text-2xl sm:text-3xl font-light text-[#231E1B]">Day-of Event Operations</h2>
+          <p className="text-xs text-[#7A6E63]">
+            Real-time ceremonial schedules, vendor arrivals, and on-site incident management
           </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
           {/* Wedding Selector */}
           <select
-            className="text-xs border border-[#E7E2D8] rounded px-3 py-1.5 bg-white font-medium text-[#1E2229] focus:ring-1 focus:ring-[#5B1424] focus:outline-none max-w-xs"
+            className="text-xs border border-[#EDE5DC] rounded px-3 py-1.5 bg-white font-medium text-[#231E1B] focus:ring-1 focus:ring-[#231E1B] focus:outline-none max-w-xs"
             value={activeWeddingId || ''}
             onChange={(e) => setSelectedWeddingId(e.target.value)}
           >
@@ -251,7 +251,7 @@ export const OperationsDashboard: React.FC = () => {
             onClick={() => refetchCockpit()}
             leftIcon={<RefreshCw className="w-3.5 h-3.5" />}
           >
-            Refresh Radar
+            Refresh
           </Button>
 
           <Button
@@ -278,19 +278,19 @@ export const OperationsDashboard: React.FC = () => {
 
       {/* Real-time Status Radar Banner */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Card className="border-l-4 border-l-[#5B1424]">
+        <Card className="border-l-4 border-l-[#231E1B]">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-semibold text-[#718096] uppercase">Scheduled Activities</span>
-            <Clock className="w-4 h-4 text-[#5B1424]" />
+            <span className="text-[11px] font-semibold text-[#7A6E63] uppercase">Scheduled Activities</span>
+            <Clock className="w-4 h-4 text-[#231E1B]" />
           </div>
-          <div className="text-2xl font-serif font-bold text-[#1E2229] mt-2">
+          <div className="text-2xl font-serif font-bold text-[#231E1B] mt-2">
             {schedules.length} Milestones
           </div>
         </Card>
 
         <Card className="border-l-4 border-l-emerald-600">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-semibold text-[#718096] uppercase">On-Schedule Vendors</span>
+            <span className="text-[11px] font-semibold text-[#7A6E63] uppercase">On-Schedule Vendors</span>
             <CheckCircle2 className="w-4 h-4 text-emerald-600" />
           </div>
           <div className="text-2xl font-serif font-bold text-emerald-800 mt-2">
@@ -300,7 +300,7 @@ export const OperationsDashboard: React.FC = () => {
 
         <Card className="border-l-4 border-l-rose-600">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-semibold text-[#718096] uppercase">Delayed Arrivals</span>
+            <span className="text-[11px] font-semibold text-[#7A6E63] uppercase">Delayed Arrivals</span>
             <AlertTriangle className="w-4 h-4 text-rose-600" />
           </div>
           <div className="text-2xl font-serif font-bold text-rose-700 mt-2">
@@ -310,7 +310,7 @@ export const OperationsDashboard: React.FC = () => {
 
         <Card className="border-l-4 border-l-amber-600">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-semibold text-[#718096] uppercase">Open Incidents</span>
+            <span className="text-[11px] font-semibold text-[#7A6E63] uppercase">Open Incidents</span>
             <Radio className="w-4 h-4 text-amber-600" />
           </div>
           <div className="text-2xl font-serif font-bold text-amber-800 mt-2">
@@ -320,13 +320,13 @@ export const OperationsDashboard: React.FC = () => {
       </div>
 
       {/* Sub-Tabs: Timeline, Radar, Incidents, Staff Roster */}
-      <div className="flex space-x-2 border-b border-[#E7E2D8]">
+      <div className="flex space-x-2 border-b border-[#EDE5DC]">
         <button
           onClick={() => setActiveOpsTab('timeline')}
           className={`pb-2 px-3 text-xs font-semibold flex items-center gap-1.5 border-b-2 transition-colors ${
             activeOpsTab === 'timeline'
-              ? 'border-[#5B1424] text-[#5B1424]'
-              : 'border-transparent text-[#718096] hover:text-[#1E2229]'
+              ? 'border-[#231E1B] text-[#231E1B]'
+              : 'border-transparent text-[#7A6E63] hover:text-[#231E1B]'
           }`}
         >
           <Clock className="w-4 h-4" />
@@ -337,8 +337,8 @@ export const OperationsDashboard: React.FC = () => {
           onClick={() => setActiveOpsTab('radar')}
           className={`pb-2 px-3 text-xs font-semibold flex items-center gap-1.5 border-b-2 transition-colors ${
             activeOpsTab === 'radar'
-              ? 'border-[#5B1424] text-[#5B1424]'
-              : 'border-transparent text-[#718096] hover:text-[#1E2229]'
+              ? 'border-[#231E1B] text-[#231E1B]'
+              : 'border-transparent text-[#7A6E63] hover:text-[#231E1B]'
           }`}
         >
           <Radar className="w-4 h-4" />
@@ -349,8 +349,8 @@ export const OperationsDashboard: React.FC = () => {
           onClick={() => setActiveOpsTab('incidents')}
           className={`pb-2 px-3 text-xs font-semibold flex items-center gap-1.5 border-b-2 transition-colors ${
             activeOpsTab === 'incidents'
-              ? 'border-[#5B1424] text-[#5B1424]'
-              : 'border-transparent text-[#718096] hover:text-[#1E2229]'
+              ? 'border-[#231E1B] text-[#231E1B]'
+              : 'border-transparent text-[#7A6E63] hover:text-[#231E1B]'
           }`}
         >
           <ShieldAlert className="w-4 h-4" />
@@ -361,8 +361,8 @@ export const OperationsDashboard: React.FC = () => {
           onClick={() => setActiveOpsTab('roster')}
           className={`pb-2 px-3 text-xs font-semibold flex items-center gap-1.5 border-b-2 transition-colors ${
             activeOpsTab === 'roster'
-              ? 'border-[#5B1424] text-[#5B1424]'
-              : 'border-transparent text-[#718096] hover:text-[#1E2229]'
+              ? 'border-[#231E1B] text-[#231E1B]'
+              : 'border-transparent text-[#7A6E63] hover:text-[#231E1B]'
           }`}
         >
           <Users className="w-4 h-4" />
@@ -374,15 +374,15 @@ export const OperationsDashboard: React.FC = () => {
       {activeOpsTab === 'timeline' && (
         <Card>
           {schedulesLoading ? (
-            <div className="py-12 text-center text-xs text-[#718096]">Loading minute-by-minute timeline...</div>
+            <div className="py-12 text-center text-xs text-[#7A6E63]">Loading minute-by-minute timeline...</div>
           ) : schedules.length === 0 ? (
-            <div className="py-12 text-center text-xs text-[#718096]">
+            <div className="py-12 text-center text-xs text-[#7A6E63]">
               No schedule activities created for this wedding yet. Click &quot;Add Activity&quot; above to begin.
             </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-xs text-left">
-                <thead className="bg-[#F7F4EE] text-[#1E2229] border-b border-[#E7E2D8]">
+                <thead className="bg-[#FAF6F1] text-[#231E1B] border-b border-[#EDE5DC]">
                   <tr>
                     <th className="px-4 py-3 font-semibold">Time Window</th>
                     <th className="px-4 py-3 font-semibold">Ceremony</th>
@@ -392,13 +392,13 @@ export const OperationsDashboard: React.FC = () => {
                     <th className="px-4 py-3 font-semibold text-right">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#E7E2D8]">
+                <tbody className="divide-y divide-[#EDE5DC]">
                   {schedules.map((item) => (
                     <tr key={item.id} className="hover:bg-amber-50/20">
-                      <td className="px-4 py-3 font-mono font-medium text-[#5B1424] whitespace-nowrap">
+                      <td className="px-4 py-3 font-mono font-medium text-[#231E1B] whitespace-nowrap">
                         {new Date(item.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} -{' '}
                         {new Date(item.endTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                        <div className="text-[10px] text-[#718096] font-sans">
+                        <div className="text-[10px] text-[#7A6E63] font-sans">
                           {item.weddingDay?.title || 'Day Schedule'}
                         </div>
                       </td>
@@ -408,15 +408,15 @@ export const OperationsDashboard: React.FC = () => {
                       </td>
 
                       <td className="px-4 py-3 max-w-sm">
-                        <div className="font-semibold text-[#1E2229]">{item.activityName}</div>
+                        <div className="font-semibold text-[#231E1B]">{item.activityName}</div>
                         {item.notes && (
-                          <div className="text-[11px] text-[#718096] mt-0.5">{item.notes}</div>
+                          <div className="text-[11px] text-[#7A6E63] mt-0.5">{item.notes}</div>
                         )}
                       </td>
 
-                      <td className="px-4 py-3 text-[#1E2229]">
+                      <td className="px-4 py-3 text-[#231E1B]">
                         <div className="flex items-center gap-1">
-                          <MapPin className="w-3.5 h-3.5 text-[#C5A059]" />
+                          <MapPin className="w-3.5 h-3.5 text-[#B89358]" />
                           <span>{item.location}</span>
                         </div>
                       </td>
@@ -424,9 +424,9 @@ export const OperationsDashboard: React.FC = () => {
                       <td className="px-4 py-3 text-[#4A5568]">
                         {item.coordinator ? (
                           <div>
-                            <div className="font-medium text-[#1E2229]">{item.coordinator.name}</div>
+                            <div className="font-medium text-[#231E1B]">{item.coordinator.name}</div>
                             {item.coordinator.phone && (
-                              <div className="text-[10px] text-[#718096] flex items-center gap-1 mt-0.5">
+                              <div className="text-[10px] text-[#7A6E63] flex items-center gap-1 mt-0.5">
                                 <Phone className="w-3 h-3" />
                                 <span>{item.coordinator.phone}</span>
                               </div>
@@ -460,15 +460,15 @@ export const OperationsDashboard: React.FC = () => {
       {activeOpsTab === 'radar' && (
         <Card>
           {radarLoading ? (
-            <div className="py-12 text-center text-xs text-[#718096]">Scanning arrival radar...</div>
+            <div className="py-12 text-center text-xs text-[#7A6E63]">Scanning arrival radar...</div>
           ) : vendorCheckIns.length === 0 ? (
-            <div className="py-12 text-center text-xs text-[#718096]">
+            <div className="py-12 text-center text-xs text-[#7A6E63]">
               No contracted vendors currently attached to this wedding dossier.
             </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-xs text-left">
-                <thead className="bg-[#F7F4EE] text-[#1E2229] border-b border-[#E7E2D8]">
+                <thead className="bg-[#FAF6F1] text-[#231E1B] border-b border-[#EDE5DC]">
                   <tr>
                     <th className="px-4 py-3 font-semibold">Vendor Partner</th>
                     <th className="px-4 py-3 font-semibold">Category</th>
@@ -478,14 +478,14 @@ export const OperationsDashboard: React.FC = () => {
                     <th className="px-4 py-3 font-semibold text-right">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#E7E2D8]">
+                <tbody className="divide-y divide-[#EDE5DC]">
                   {vendorCheckIns.map((ci) => (
                     <tr key={ci.id} className="hover:bg-amber-50/20">
                       <td className="px-4 py-3">
-                        <div className="font-semibold text-[#1E2229]">
+                        <div className="font-semibold text-[#231E1B]">
                           {ci.weddingVendor.vendor.businessName}
                         </div>
-                        <div className="text-[11px] text-[#718096] flex items-center gap-1 mt-0.5">
+                        <div className="text-[11px] text-[#7A6E63] flex items-center gap-1 mt-0.5">
                           <Phone className="w-3 h-3" />
                           <span>{ci.weddingVendor.vendor.phone} ({ci.weddingVendor.vendor.contactPerson})</span>
                         </div>
@@ -497,11 +497,11 @@ export const OperationsDashboard: React.FC = () => {
                         </Badge>
                       </td>
 
-                      <td className="px-4 py-3 font-mono text-[#1E2229]">
+                      <td className="px-4 py-3 font-mono text-[#231E1B]">
                         {ci.scheduledArrival ? (
                           new Date(ci.scheduledArrival).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
                         ) : (
-                          <span className="text-[#718096] italic">Unscheduled</span>
+                          <span className="text-[#7A6E63] italic">Unscheduled</span>
                         )}
                       </td>
 
@@ -565,15 +565,15 @@ export const OperationsDashboard: React.FC = () => {
       {activeOpsTab === 'incidents' && (
         <Card>
           {incidentsLoading ? (
-            <div className="py-12 text-center text-xs text-[#718096]">Loading operations incident logs...</div>
+            <div className="py-12 text-center text-xs text-[#7A6E63]">Loading operations incident logs...</div>
           ) : incidents.length === 0 ? (
-            <div className="py-12 text-center text-xs text-[#718096]">
+            <div className="py-12 text-center text-xs text-[#7A6E63]">
               Zero active incidents reported. Operations proceeding according to protocol.
             </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-xs text-left">
-                <thead className="bg-[#F7F4EE] text-[#1E2229] border-b border-[#E7E2D8]">
+                <thead className="bg-[#FAF6F1] text-[#231E1B] border-b border-[#EDE5DC]">
                   <tr>
                     <th className="px-4 py-3 font-semibold">Incident Details</th>
                     <th className="px-4 py-3 font-semibold">Severity</th>
@@ -582,11 +582,11 @@ export const OperationsDashboard: React.FC = () => {
                     <th className="px-4 py-3 font-semibold text-right">Resolution Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#E7E2D8]">
+                <tbody className="divide-y divide-[#EDE5DC]">
                   {incidents.map((inc) => (
                     <tr key={inc.id} className="hover:bg-amber-50/20">
                       <td className="px-4 py-3 max-w-sm">
-                        <div className="font-semibold text-[#1E2229]">{inc.title}</div>
+                        <div className="font-semibold text-[#231E1B]">{inc.title}</div>
                         <div className="text-[11px] text-[#4A5568] mt-0.5">{inc.description}</div>
                         {inc.resolutionNotes && (
                           <div className="text-[11px] text-emerald-800 bg-emerald-50 p-1.5 rounded mt-1.5 border border-emerald-200">
@@ -601,7 +601,7 @@ export const OperationsDashboard: React.FC = () => {
 
                       <td className="px-4 py-3 text-[#4A5568]">
                         <div>{inc.reportedBy}</div>
-                        <div className="text-[10px] text-[#718096]">
+                        <div className="text-[10px] text-[#7A6E63]">
                           {new Date(inc.reportedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                         </div>
                       </td>
@@ -636,15 +636,15 @@ export const OperationsDashboard: React.FC = () => {
       {activeOpsTab === 'roster' && (
         <Card>
           {cockpitLoading ? (
-            <div className="py-12 text-center text-xs text-[#718096]">Loading staff roster...</div>
+            <div className="py-12 text-center text-xs text-[#7A6E63]">Loading staff roster...</div>
           ) : !cockpit?.staffRoster || cockpit.staffRoster.length === 0 ? (
-            <div className="py-12 text-center text-xs text-[#718096]">
+            <div className="py-12 text-center text-xs text-[#7A6E63]">
               No team members assigned to tasks or activities on this wedding yet.
             </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-xs text-left">
-                <thead className="bg-[#F7F4EE] text-[#1E2229] border-b border-[#E7E2D8]">
+                <thead className="bg-[#FAF6F1] text-[#231E1B] border-b border-[#EDE5DC]">
                   <tr>
                     <th className="px-4 py-3 font-semibold">Staff Member</th>
                     <th className="px-4 py-3 font-semibold">Operational Role</th>
@@ -653,10 +653,10 @@ export const OperationsDashboard: React.FC = () => {
                     <th className="px-4 py-3 font-semibold">Coordinated Ceremonies</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#E7E2D8]">
+                <tbody className="divide-y divide-[#EDE5DC]">
                   {cockpit.staffRoster.map((item: any) => (
                     <tr key={item.user.id} className="hover:bg-amber-50/20">
-                      <td className="px-4 py-3 font-semibold text-[#1E2229]">
+                      <td className="px-4 py-3 font-semibold text-[#231E1B]">
                         {item.user.name}
                       </td>
                       <td className="px-4 py-3">
@@ -667,13 +667,13 @@ export const OperationsDashboard: React.FC = () => {
                       <td className="px-4 py-3 text-[#4A5568]">
                         <div>{item.user.email}</div>
                         {item.user.phone && (
-                          <div className="text-[11px] text-[#718096]">{item.user.phone}</div>
+                          <div className="text-[11px] text-[#7A6E63]">{item.user.phone}</div>
                         )}
                       </td>
-                      <td className="px-4 py-3 font-mono font-bold text-[#5B1424]">
+                      <td className="px-4 py-3 font-mono font-bold text-[#231E1B]">
                         {item.taskCount} Milestones
                       </td>
-                      <td className="px-4 py-3 font-mono font-bold text-[#C5A059]">
+                      <td className="px-4 py-3 font-mono font-bold text-[#B89358]">
                         {item.scheduleCount} Activities
                       </td>
                     </tr>

@@ -3,6 +3,7 @@ import crypto from "crypto";
 import { PrismaClient } from "@prisma/client";
 import {
   LoginSchema,
+  RegisterSchema,
   AuthenticatedUserSchema,
   getPermissionsForRole,
   USER_ROLES,
@@ -14,7 +15,7 @@ import {
   SESSION_EXPIRY_MS,
   hashToken
 } from "../services/auth.service.js";
-import { verifyPasswordAsync } from "../utils/password.js";
+import { verifyPasswordAsync, hashPassword } from "../utils/password.js";
 import { LoginRateLimiter } from "../middleware/rateLimiter.js";
 import { authenticate, validateCsrf } from "../middleware/auth.js";
 
@@ -120,6 +121,94 @@ export function createAuthRouter(prisma: PrismaClient, rateLimiter?: LoginRateLi
     const permissions = getPermissionsForRole(user.role as UserRole);
 
     return res.status(200).json({
+      success: true,
+      user: safeUser,
+      permissions,
+      csrfToken: rawCsrfToken
+    });
+  });
+
+  /**
+   * POST /api/auth/register
+   * Register a new user, issue persistent session, set HTTP-only cookie
+   */
+  router.post("/register", limiter.middleware(), async (req: Request, res: Response) => {
+    const ip = limiter.extractIp(req);
+
+    // 1. Origin check
+    const origin = req.headers.origin || req.headers.referer;
+    if (origin) {
+      try {
+        const originUrl = new URL(origin);
+        const originBase = `${originUrl.protocol}//${originUrl.host}`;
+        if (!allowedOrigins.includes(originBase) && !allowedOrigins.includes("*")) {
+          return res.status(403).json({ error: "Access denied. Cross-origin registration prohibited." });
+        }
+      } catch {
+        return res.status(400).json({ error: "Invalid Origin or Referer header format." });
+      }
+    }
+
+    // 2. Validate input schema
+    const parseResult = RegisterSchema.safeParse(req.body);
+    if (!parseResult.success) {
+      return res.status(400).json({
+        error: "Invalid registration request payload.",
+        details: parseResult.error.flatten().fieldErrors
+      });
+    }
+
+    const { name, email, password, role, phone } = parseResult.data;
+    const normalizedEmail = email.toLowerCase().trim();
+
+    // 3. Check for existing user
+    const existing = await prisma.user.findUnique({
+      where: { email: normalizedEmail }
+    });
+
+    if (existing) {
+      return res.status(409).json({ error: "Email address is already registered in The Royal Knot." });
+    }
+
+    // 4. Create new user with hashed password
+    const user = await prisma.user.create({
+      data: {
+        name: name.trim(),
+        email: normalizedEmail,
+        passwordHash: hashPassword(password),
+        role: role || "COORDINATOR",
+        phone: phone ? phone.trim() : null,
+        hourlyRatePaise: 0n
+      }
+    });
+
+    // 5. Create persistent session
+    const userAgent = req.headers["user-agent"];
+    const { rawSessionToken, rawCsrfToken } = await authService.createSession(user.id, {
+      userAgent,
+      ipAddress: ip
+    });
+
+    res.cookie(SESSION_COOKIE_NAME, rawSessionToken, {
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: "lax",
+      path: "/",
+      maxAge: SESSION_EXPIRY_MS
+    });
+
+    const safeUser = AuthenticatedUserSchema.parse({
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      role: user.role,
+      phone: user.phone,
+      hourlyRatePaise: user.hourlyRatePaise.toString()
+    });
+
+    const permissions = getPermissionsForRole(user.role as UserRole);
+
+    return res.status(201).json({
       success: true,
       user: safeUser,
       permissions,

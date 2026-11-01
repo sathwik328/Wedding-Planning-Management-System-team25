@@ -18,11 +18,12 @@ model User {
   passwordHash    String          @default("")
   phone           String?
   hourlyRatePaise BigInt          @default(150000) // ₹1,500.00/hr in paise
-  tasksAssigned   Task[]
-  schedulesLead   EventSchedule[]
-  workLogs        TeamWorkLog[]
-  sessions        Session[]
-  createdAt       DateTime        @default(now())
+  tasksAssigned            Task[]
+  schedulesLead            EventSchedule[]
+  workLogs                 TeamWorkLog[]
+  sessions                 Session[]
+  contingencyPlansAssigned ContingencyPlan[] @relation("AssignedCommander")
+  createdAt                DateTime        @default(now())
   updatedAt       DateTime        @updatedAt
 }
 
@@ -126,6 +127,13 @@ model Wedding {
   status                 String                  @default("PLANNING") // "PLANNING", "ACTIVE_EXECUTION", "COMPLETED", "SETTLED"
   tasksGenerated         Boolean                 @default(false)
   isDemoData             Boolean                 @default(false)
+  guestPortalSlug        String?                 @unique
+  guestPortalTokenHash   String?                 @unique
+  guestPortalEnabled     Boolean                 @default(false)
+  welcomeMessage         String?
+  venueGoogleMapsUrl     String?
+  emergencyContactPhone  String?
+  emergencyContactName   String?
   
   days                   WeddingDay[]
   guests                 Guest[]
@@ -138,6 +146,8 @@ model Wedding {
   clientInvoices         ClientInvoice[]
   additionalCharges      AdditionalCharge[]
   workLogs               TeamWorkLog[]
+  rsvpSubmissions        RsvpSubmission[]
+  contingencyPlans       ContingencyPlan[]
   
   createdAt              DateTime                @default(now())
   updatedAt              DateTime                @updatedAt
@@ -155,15 +165,21 @@ model WeddingDay {
 }
 
 model Guest {
-  id            String   @id @default(uuid())
-  weddingId     String
-  wedding       Wedding  @relation(fields: [weddingId], references: [id], onDelete: Cascade)
-  fullName      String
-  category      String   // "VIP", "GROOM_SIDE", "BRIDE_SIDE", "EXTENDED"
-  rsvpStatus    String   @default("CONFIRMED")
-  dietaryNotes  String?
-  tableAssigned String?
-  createdAt     DateTime @default(now())
+  id                 String          @id @default(uuid())
+  weddingId          String
+  wedding            Wedding         @relation(fields: [weddingId], references: [id], onDelete: Cascade)
+  fullName           String
+  category           String          // "VIP", "GROOM_SIDE", "BRIDE_SIDE", "EXTENDED", "PORTAL_GUEST"
+  rsvpStatus         String          @default("CONFIRMED")
+  dietaryNotes       String?
+  tableAssigned      String?
+  rsvpSubmissionId   String?
+  rsvpSubmission     RsvpSubmission? @relation(fields: [rsvpSubmissionId], references: [id], onDelete: SetNull)
+  phone              String?
+  isHouseholdPrimary Boolean         @default(false)
+  createdAt          DateTime        @default(now())
+
+  @@index([weddingId, rsvpSubmissionId])
 }
 
 // -------------------------------------------------------------
@@ -202,11 +218,12 @@ model EventSchedule {
   startTime     DateTime
   endTime       DateTime
   location      String
-  coordinatorId String?
-  coordinator   User?       @relation(fields: [coordinatorId], references: [id])
-  notes         String?
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
+  coordinatorId    String?
+  coordinator      User?             @relation(fields: [coordinatorId], references: [id])
+  notes            String?
+  contingencyPlans ContingencyPlan[]
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
 }
 
 model VendorCheckIn {
@@ -236,6 +253,7 @@ model Incident {
   resolvedAt        DateTime?
   resolutionNotes   String?
   additionalCharges AdditionalCharge[]
+  contingencyPlan   ContingencyPlan?
   createdAt         DateTime           @default(now())
   updatedAt         DateTime           @updatedAt
 }
@@ -252,12 +270,13 @@ model Vendor {
   email             String
   city              String
   notes             String?
-  quotations        VendorQuotation[]
-  weddingVendors    WeddingVendor[]
-  vendorRequests    VendorRequest[]
-  additionalCharges AdditionalCharge[]
-  createdAt         DateTime            @default(now())
-  updatedAt         DateTime            @updatedAt
+  quotations              VendorQuotation[]
+  weddingVendors          WeddingVendor[]
+  vendorRequests          VendorRequest[]
+  additionalCharges       AdditionalCharge[]
+  contingencyPlansStandby ContingencyPlan[] @relation("StandbyVendor")
+  createdAt               DateTime            @default(now())
+  updatedAt               DateTime            @updatedAt
 }
 
 model QuotationRequestGroup {
@@ -499,3 +518,70 @@ model TeamWorkLog {
   taskDescription     String
   createdAt           DateTime @default(now())
 }
+
+// -------------------------------------------------------------
+// GUEST PORTAL & HOUSEHOLD RSVPS (FEATURE 3)
+// -------------------------------------------------------------
+model RsvpSubmission {
+  id                  String    @id @default(uuid())
+  weddingId           String
+  wedding             Wedding   @relation(fields: [weddingId], references: [id], onDelete: Cascade)
+  primaryContactPhone String    // Normalized E.164 (e.g. +919829011111)
+  primaryGuestName    String
+  email               String?
+  partySize           Int       @default(1)
+  rsvpStatus          String    // "CONFIRMED", "DECLINED", "TENTATIVE"
+  dietaryNotes        String?
+  subEventsRsvp       String?   // JSON array matching SUB_EVENTS
+  submittedVia        String    @default("PUBLIC_QR_PORTAL")
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  guests              Guest[]
+
+  @@unique([weddingId, primaryContactPhone])
+  @@index([weddingId])
+}
+
+// -------------------------------------------------------------
+// CONTINGENCY & BACKUP PLANS (FEATURE 4)
+// -------------------------------------------------------------
+model ContingencyPlan {
+  id                       String         @id @default(uuid())
+  weddingId                String
+  wedding                  Wedding        @relation(fields: [weddingId], references: [id], onDelete: Cascade)
+  eventScheduleId          String?
+  eventSchedule            EventSchedule? @relation(fields: [eventScheduleId], references: [id])
+  
+  category                 String         // Validated by Zod enum CONTINGENCY_CATEGORIES
+  riskTriggerCondition     String
+  
+  primaryLocation          String
+  backupLocation           String
+  previousScheduleLocation String?        // Preserves original location on schedule relocation
+  backupPowerRequired      Boolean        @default(false)
+  standbyGeneratorKva      Int?
+  
+  assignedCommanderId      String
+  assignedCommander        User           @relation("AssignedCommander", fields: [assignedCommanderId], references: [id])
+  standbyVendorId          String?
+  standbyVendor            Vendor?        @relation("StandbyVendor", fields: [standbyVendorId], references: [id])
+  
+  severityOnActivation     String         // "MEDIUM" | "CRITICAL"
+  contingencyBudgetPaise   BigInt         @default(0)
+  
+  status                   String         @default("STANDBY") // "STANDBY", "ACTIVATED", "RESOLVED", "CANCELLED"
+  activatedAt              DateTime?
+  activatedById            String?
+  resolutionNotes          String?
+  resolvedAt               DateTime?
+  
+  incidentId               String?        @unique
+  incident                 Incident?      @relation(fields: [incidentId], references: [id])
+  
+  createdAt                DateTime       @default(now())
+  updatedAt                DateTime       @updatedAt
+
+  @@index([weddingId, status])
+}
+

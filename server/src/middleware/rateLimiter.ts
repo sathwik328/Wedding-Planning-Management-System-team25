@@ -14,13 +14,6 @@ export interface LoginRateLimiterOptions {
 
 /**
  * In-Memory Sliding-Window Login Rate Limiter
- *
- * NOTE ON PRODUCTION DEPLOYMENT & LIMITATIONS:
- * This rate limiter maintains state in the local Node.js process memory.
- * - Single-instance limitation: When running in a cluster (PM2) or multi-container
- *   environment (Kubernetes, AWS ECS), attempts are tracked per worker instance.
- * - For production multi-worker or distributed deployments, an external store (e.g. Redis
- *   via ioredis or Cloudflare / API Gateway rate-limiting rules at the edge) is required.
  */
 export class LoginRateLimiter {
   private records = new Map<string, RateLimitRecord>();
@@ -38,79 +31,74 @@ export class LoginRateLimiter {
     if (timer.unref) timer.unref();
   }
 
-  /**
-   * Safely extract client IP from request.
-   * Respects trust proxy when enabled on Express app.
-   */
   public extractIp(req: Request): string {
     const forwarded = req.headers["x-forwarded-for"];
     if (typeof forwarded === "string") {
       const firstIp = forwarded.split(",")[0].trim();
       if (firstIp) return firstIp;
     }
-    return req.ip || req.socket.remoteAddress || "127.0.0.1";
+    return req.ip || req.socket?.remoteAddress || "127.0.0.1";
   }
 
-  /**
-   * Check if client IP is currently rate-limited.
-   */
-  public isBlocked(ip: string): { blocked: boolean; retryAfterSeconds: number } {
+  public recordFailedAttempt(ip: string): { blocked: boolean; remainingAttempts: number; retryAfterSeconds: number } {
     const now = Date.now();
     const record = this.records.get(ip);
-    if (!record) return { blocked: false, retryAfterSeconds: 0 };
-
-    if (record.blockedUntil > now) {
-      const retryAfterSeconds = Math.ceil((record.blockedUntil - now) / 1000);
-      return { blocked: true, retryAfterSeconds };
-    }
-
-    // If block expired or window expired, reset
-    if (now - record.firstAttemptAt > this.windowMs) {
-      this.records.delete(ip);
-      return { blocked: false, retryAfterSeconds: 0 };
-    }
-
-    return { blocked: false, retryAfterSeconds: 0 };
-  }
-
-  /**
-   * Record a failed login attempt for the given IP.
-   */
-  public recordFailure(ip: string): { blocked: boolean; retryAfterSeconds: number } {
-    const now = Date.now();
-    let record = this.records.get(ip);
 
     if (!record || now - record.firstAttemptAt > this.windowMs) {
-      record = {
+      this.records.set(ip, {
         failedAttempts: 1,
         firstAttemptAt: now,
         blockedUntil: 0
+      });
+      return {
+        blocked: false,
+        remainingAttempts: this.maxFailedAttempts - 1,
+        retryAfterSeconds: 0
       };
-      this.records.set(ip, record);
-      return { blocked: false, retryAfterSeconds: 0 };
     }
 
     record.failedAttempts += 1;
 
     if (record.failedAttempts >= this.maxFailedAttempts) {
       record.blockedUntil = now + this.blockDurationMs;
-      const retryAfterSeconds = Math.ceil(this.blockDurationMs / 1000);
-      return { blocked: true, retryAfterSeconds };
+      return {
+        blocked: true,
+        remainingAttempts: 0,
+        retryAfterSeconds: Math.ceil(this.blockDurationMs / 1000)
+      };
+    }
+
+    return {
+      blocked: false,
+      remainingAttempts: this.maxFailedAttempts - record.failedAttempts,
+      retryAfterSeconds: 0
+    };
+  }
+
+  public recordFailure(ip: string): { blocked: boolean; remainingAttempts: number; retryAfterSeconds: number } {
+    return this.recordFailedAttempt(ip);
+  }
+
+  public isBlocked(ip: string): { blocked: boolean; retryAfterSeconds: number } {
+    const now = Date.now();
+    const record = this.records.get(ip);
+
+    if (!record) return { blocked: false, retryAfterSeconds: 0 };
+
+    if (record.blockedUntil > now) {
+      return {
+        blocked: true,
+        retryAfterSeconds: Math.ceil((record.blockedUntil - now) / 1000)
+      };
     }
 
     return { blocked: false, retryAfterSeconds: 0 };
   }
 
-  /**
-   * Reset rate limit record on successful login.
-   */
   public recordSuccess(ip: string): void {
     this.records.delete(ip);
   }
 
-  /**
-   * Clean expired entries
-   */
   private cleanup(): void {
     const now = Date.now();
     for (const [ip, rec] of this.records.entries()) {
@@ -120,9 +108,6 @@ export class LoginRateLimiter {
     }
   }
 
-  /**
-   * Express middleware guard to check prior to login handler
-   */
   public middleware() {
     return (req: Request, res: Response, next: NextFunction) => {
       const ip = this.extractIp(req);
@@ -139,4 +124,55 @@ export class LoginRateLimiter {
       next();
     };
   }
+}
+
+/**
+ * General Purpose In-Memory Rate Limiter Middleware
+ */
+export function rateLimiter(options: { windowMs: number; maxRequests: number; keyPrefix?: string }) {
+  const records = new Map<string, { count: number; resetAt: number }>();
+
+  // Clean stale keys every 5 minutes
+  const timer = setInterval(() => {
+    const now = Date.now();
+    for (const [key, rec] of records.entries()) {
+      if (now > rec.resetAt) {
+        records.delete(key);
+      }
+    }
+  }, 5 * 60 * 1000);
+  if (timer.unref) timer.unref();
+
+  return (req: Request, res: Response, next: NextFunction) => {
+    const forwarded = req.headers["x-forwarded-for"];
+    let ip = "127.0.0.1";
+    if (typeof forwarded === "string") {
+      ip = forwarded.split(",")[0].trim();
+    } else if (req.ip) {
+      ip = req.ip;
+    } else if (req.socket?.remoteAddress) {
+      ip = req.socket.remoteAddress;
+    }
+
+    const key = (options.keyPrefix || "rl:") + ip;
+    const now = Date.now();
+    const rec = records.get(key);
+
+    if (!rec || now > rec.resetAt) {
+      records.set(key, { count: 1, resetAt: now + options.windowMs });
+      return next();
+    }
+
+    rec.count++;
+    if (rec.count > options.maxRequests) {
+      const retryAfter = Math.ceil((rec.resetAt - now) / 1000);
+      res.setHeader("Retry-After", retryAfter.toString());
+      return res.status(429).json({
+        error: "Too many requests. Please try again later.",
+        retryAfterSeconds: retryAfter
+      });
+    }
+
+    next();
+  };
 }

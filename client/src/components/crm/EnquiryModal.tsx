@@ -39,6 +39,25 @@ export const EnquiryModal: React.FC<EnquiryModalProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+
+    const trimmedNames = coupleNames.trim();
+    if (!trimmedNames || trimmedNames.length < 3) {
+      setError('Identifying couple names are required (minimum 3 characters)');
+      return;
+    }
+    if (!primaryEmail.trim() || !primaryEmail.includes('@')) {
+      setError('A valid primary email address is required');
+      return;
+    }
+    if (!primaryPhone.trim() || primaryPhone.trim().length < 8) {
+      setError('A valid primary contact phone number is required');
+      return;
+    }
+    if (!roughDate) {
+      setError('Please select a tentative event date');
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -47,9 +66,9 @@ export const EnquiryModal: React.FC<EnquiryModalProps> = ({
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          coupleNames,
-          primaryEmail,
-          primaryPhone,
+          coupleNames: trimmedNames,
+          primaryEmail: primaryEmail.trim(),
+          primaryPhone: primaryPhone.trim(),
           source,
           roughDate: new Date(roughDate).toISOString(),
           estimatedGuests: Number(estimatedGuests),

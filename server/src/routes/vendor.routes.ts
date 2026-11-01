@@ -1,14 +1,38 @@
 import { Router, Request, Response } from "express";
 import { PrismaClient } from "@prisma/client";
 import { VendorProcurementService } from "../services/vendorProcurement.service.js";
+import { VendorReliabilityService } from "../services/vendor-reliability.service.js";
 import { authenticate, requirePermission, validateCsrf } from "../middleware/index.js";
 
 export function createVendorRouter(prisma: PrismaClient): Router {
   const router = Router();
   const service = new VendorProcurementService(prisma);
+  const reliabilityService = new VendorReliabilityService(prisma);
 
   // All vendor procurement routes require an authenticated session
   router.use(authenticate(prisma));
+
+  // -------------------------------------------------------------
+  // FEATURE 5: VENDOR RELIABILITY INTELLIGENCE
+  // (Mounted before /:id to prevent route collision)
+  // -------------------------------------------------------------
+  router.get("/reliability-matrix", requirePermission("procurement:vendor:read"), async (_req: Request, res: Response) => {
+    try {
+      const scorecards = await reliabilityService.getVendorReliabilityMatrix();
+      res.json({ success: true, data: scorecards });
+    } catch (err: any) {
+      res.status(500).json({ error: err.message || "Failed to generate vendor reliability matrix" });
+    }
+  });
+
+  router.get("/:id/reliability-dossier", requirePermission("procurement:vendor:read"), async (req: Request, res: Response) => {
+    try {
+      const scorecard = await reliabilityService.getVendorReliabilityDossier(req.params.id);
+      res.json({ success: true, data: scorecard });
+    } catch (err: any) {
+      res.status(500).json({ error: err.message || "Failed to fetch vendor reliability dossier" });
+    }
+  });
 
   // GET /api/vendors - List all vendors with optional filters
   router.get("/", requirePermission("procurement:vendor:read"), async (req: Request, res: Response) => {

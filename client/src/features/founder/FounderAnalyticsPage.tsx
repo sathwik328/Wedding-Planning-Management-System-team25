@@ -4,11 +4,11 @@ import { Badge } from '../../components/common/Badge';
 import { Button } from '../../components/common/Button';
 import {
   Crown,
-  Users,
   ShieldCheck,
-  Percent,
   RefreshCw,
-  Sparkles
+  TrendingUp,
+  Receipt,
+  ArrowDownRight
 } from 'lucide-react';
 import { formatPaiseToINR, formatPaiseCompact } from 'shared';
 import { useAuth } from '../../contexts/AuthContext';
@@ -82,12 +82,26 @@ export interface SeasonalFinancialAnalytics {
   }>;
 }
 
+export interface VendorPerformanceItem {
+  id: string;
+  businessName: string;
+  category: string;
+  city: string;
+  contactPerson: string;
+  _count: {
+    quotations: number;
+    weddingVendors: number;
+  };
+}
+
 export const FounderAnalyticsPage: React.FC = () => {
   const { hasPermission } = useAuth();
   const canViewSeasonal = hasPermission('analytics:seasonal:read');
   const canViewTreasury = hasPermission('analytics:treasury:read');
+  const canViewVendors = hasPermission('procurement:vendor:read');
 
   const [data, setData] = useState<SeasonalFinancialAnalytics | null>(null);
+  const [vendors, setVendors] = useState<VendorPerformanceItem[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const fetchAnalytics = async () => {
@@ -99,6 +113,13 @@ export const FounderAnalyticsPage: React.FC = () => {
         const json = await res.json();
         setData(json);
       }
+      if (canViewVendors) {
+        const vendorRes = await apiFetch('/api/vendors');
+        if (vendorRes.ok) {
+          const vJson = await vendorRes.json();
+          setVendors(Array.isArray(vJson) ? vJson : []);
+        }
+      }
     } catch (err) {
       console.error('Failed to load seasonal analytics', err);
     } finally {
@@ -108,7 +129,7 @@ export const FounderAnalyticsPage: React.FC = () => {
 
   useEffect(() => {
     fetchAnalytics();
-  }, [canViewSeasonal]);
+  }, [canViewSeasonal, canViewVendors]);
 
   if (!canViewSeasonal) {
     return (
@@ -124,8 +145,8 @@ export const FounderAnalyticsPage: React.FC = () => {
 
   if (!data) {
     return (
-      <div className="flex items-center justify-center py-20 text-[#718096]">
-        <RefreshCw className="w-6 h-6 animate-spin mr-2 text-[#C5A059]" />
+      <div className="flex items-center justify-center py-20 text-[#7A6E63]">
+        <RefreshCw className="w-6 h-6 animate-spin mr-2 text-[#B89358]" />
         Computing authoritative seasonal financial analytics...
       </div>
     );
@@ -133,16 +154,25 @@ export const FounderAnalyticsPage: React.FC = () => {
 
   const { seasonOverview, portfolioLedger, marginByPackageType } = data;
 
+  // Derive total operating expenses from actual accrual ledger
+  const totalExpensesPaise = portfolioLedger
+    ? (
+        BigInt(portfolioLedger.accrual.totalVendorExpensesPaise) +
+        BigInt(portfolioLedger.accrual.totalDirectExpensesPaise) +
+        BigInt(portfolioLedger.accrual.totalLaborCostPaise)
+      ).toString()
+    : '0';
+
   return (
     <div className="space-y-6">
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h2 className="font-serif text-2xl font-bold text-[#5B1424]">
+          <h2 className="font-serif text-2xl sm:text-3xl font-light text-[#231E1B]">
             Founder Season Review & Strategic Analytics
           </h2>
-          <p className="text-xs text-[#718096] mt-0.5">
-            Developer B Scope • High-season Jaipur & Udaipur luxury portfolio financials & net margin audit
+          <p className="text-xs text-[#7A6E63] mt-0.5">
+            Executive Overview • High-season Rajasthan luxury portfolio financials, cash flows & vendor performance
           </p>
         </div>
 
@@ -157,66 +187,72 @@ export const FounderAnalyticsPage: React.FC = () => {
         </Button>
       </div>
 
-      {/* Season Overview Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="p-4 bg-white border border-[#E7E2D8] rounded-md shadow-xs">
-          <div className="flex items-center justify-between text-xs text-[#718096] mb-1">
-            <span className="font-semibold uppercase tracking-wider">Luxury Portfolio</span>
-            <Crown className="w-4 h-4 text-[#C5A059]" />
+      {/* Row 1: Primary Executive KPI Metric Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* Total Weddings & Pipeline Stages */}
+        <div className="p-4 bg-white border border-[#EDE5DC] rounded-md shadow-xs">
+          <div className="flex items-center justify-between text-xs text-[#7A6E63] mb-1">
+            <span className="font-semibold uppercase tracking-wider">Weddings Portfolio</span>
+            <Crown className="w-4 h-4 text-[#B89358]" />
           </div>
-          <div className="font-serif text-2xl font-bold text-[#1E2229]">
+          <div className="font-serif text-2xl sm:text-3xl font-light text-[#231E1B]">
             {seasonOverview.totalWeddings} Weddings
           </div>
-          <div className="text-[11px] text-[#718096] mt-1 flex gap-2">
-            <span className="text-emerald-700 font-semibold">{seasonOverview.completedWeddings} Settled</span>
+          <div className="text-[11px] text-[#7A6E63] mt-1 flex flex-wrap gap-1.5">
+            <span className="text-emerald-700 font-semibold">{seasonOverview.completedWeddings} Completed</span>
             <span>•</span>
             <span className="text-amber-700 font-semibold">{seasonOverview.activeWeddings} Active</span>
+            <span>•</span>
+            <span className="text-blue-700 font-semibold">{seasonOverview.planningWeddings} Upcoming</span>
           </div>
         </div>
 
-        <div className="p-4 bg-white border border-[#E7E2D8] rounded-md shadow-xs">
-          <div className="flex items-center justify-between text-xs text-[#718096] mb-1">
-            <span className="font-semibold uppercase tracking-wider">Total Season Budget</span>
-            <Sparkles className="w-4 h-4 text-[#C5A059]" />
+        {/* Total Revenue */}
+        <div className="p-4 bg-white border border-[#EDE5DC] rounded-md shadow-xs">
+          <div className="flex items-center justify-between text-xs text-[#7A6E63] mb-1">
+            <span className="font-semibold uppercase tracking-wider">Invoiced Revenue</span>
+            <Receipt className="w-4 h-4 text-[#B89358]" />
           </div>
-          <div className="font-serif text-2xl font-bold text-[#5B1424]">
-            {formatPaiseCompact(seasonOverview.totalBudgetPaise)}
+          <div className="font-serif text-2xl sm:text-3xl font-light text-[#231E1B]">
+            {portfolioLedger ? formatPaiseCompact(portfolioLedger.accrual.totalInvoicedRevenuePaise) : 'Gated'}
           </div>
-          <div className="text-[11px] text-[#718096] mt-1">
-            Avg: <span className="font-mono font-medium">{formatPaiseCompact(seasonOverview.averageBudgetPaise)}</span> / wedding
-          </div>
-        </div>
-
-        <div className="p-4 bg-white border border-[#E7E2D8] rounded-md shadow-xs">
-          <div className="flex items-center justify-between text-xs text-[#718096] mb-1">
-            <span className="font-semibold uppercase tracking-wider">Royalty & Guests</span>
-            <Users className="w-4 h-4 text-[#C5A059]" />
-          </div>
-          <div className="font-serif text-2xl font-bold text-[#1E2229]">
-            {seasonOverview.totalTargetGuests.toLocaleString()} Pax
-          </div>
-          <div className="text-[11px] text-[#718096] mt-1">
-            Avg: <span className="font-mono font-medium">{seasonOverview.averageGuestCount}</span> guests / gala
+          <div className="text-[11px] text-[#7A6E63] mt-1">
+            Total Season Budget: <span className="font-mono font-medium">{formatPaiseCompact(seasonOverview.totalBudgetPaise)}</span>
           </div>
         </div>
 
-        <div className="p-4 bg-white border border-[#E7E2D8] rounded-md shadow-xs">
-          <div className="flex items-center justify-between text-xs text-[#718096] mb-1">
-            <span className="font-semibold uppercase tracking-wider">Overall Net Margin</span>
-            <Percent className="w-4 h-4 text-emerald-600" />
+        {/* Total Expenses */}
+        <div className="p-4 bg-white border border-[#EDE5DC] rounded-md shadow-xs">
+          <div className="flex items-center justify-between text-xs text-[#7A6E63] mb-1">
+            <span className="font-semibold uppercase tracking-wider">Recognized Expenses</span>
+            <ArrowDownRight className="w-4 h-4 text-rose-600" />
+          </div>
+          <div className="font-serif text-2xl font-bold text-rose-800">
+            {portfolioLedger ? formatPaiseCompact(totalExpensesPaise) : 'Gated'}
+          </div>
+          <div className="text-[11px] text-[#7A6E63] mt-1">
+            Vendor, direct charges & internal labor
+          </div>
+        </div>
+
+        {/* Profitability & Operating Margin */}
+        <div className="p-4 bg-white border border-[#EDE5DC] rounded-md shadow-xs">
+          <div className="flex items-center justify-between text-xs text-[#7A6E63] mb-1">
+            <span className="font-semibold uppercase tracking-wider">Operating Profitability</span>
+            <TrendingUp className="w-4 h-4 text-emerald-600" />
           </div>
           <div className="font-serif text-2xl font-bold text-emerald-800">
-            {portfolioLedger ? `${portfolioLedger.accrual.operatingProfitMarginPercent.toFixed(1)}%` : 'Gated'}
+            {portfolioLedger ? formatPaiseCompact(portfolioLedger.accrual.totalOperatingProfitPaise) : 'Gated'}
           </div>
-          <div className="text-[11px] text-emerald-700 font-medium mt-1">
-            {portfolioLedger ? 'Audited Operating Profit' : 'Requires Treasury Authority'}
+          <div className="text-[11px] text-emerald-700 font-semibold mt-1">
+            {portfolioLedger ? `${portfolioLedger.accrual.operatingProfitMarginPercent.toFixed(1)}% Operating Margin` : 'Requires Treasury Authority'}
           </div>
         </div>
       </div>
 
-      {/* Strategic Package Margins & Cash Position */}
+      {/* Row 2: Strategic Breakdown Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* Full-Service vs Partial-Service Margins */}
+        {/* Package Tiers Margins */}
         <Card
           title="Agency Margin by Service Tier"
           subtitle="Accrual operating profitability performance"
@@ -231,7 +267,7 @@ export const FounderAnalyticsPage: React.FC = () => {
                   {marginByPackageType.fullService.marginPercent.toFixed(1)}% Net Margin
                 </Badge>
               </div>
-              <div className="flex justify-between text-xs text-[#718096] mt-2">
+              <div className="flex justify-between text-xs text-[#7A6E63] mt-2">
                 <span>Revenue: {formatPaiseCompact(marginByPackageType.fullService.invoicedRevenuePaise)}</span>
                 <span className="font-semibold text-emerald-800">
                   Profit: {formatPaiseCompact(marginByPackageType.fullService.operatingProfitPaise)}
@@ -248,9 +284,9 @@ export const FounderAnalyticsPage: React.FC = () => {
                   {marginByPackageType.partialService.marginPercent.toFixed(1)}% Net Margin
                 </Badge>
               </div>
-              <div className="flex justify-between text-xs text-[#718096] mt-2">
+              <div className="flex justify-between text-xs text-[#7A6E63] mt-2">
                 <span>Revenue: {formatPaiseCompact(marginByPackageType.partialService.invoicedRevenuePaise)}</span>
-                <span className="font-semibold text-[#8C6F31]">
+                <span className="font-semibold text-[#8C7355]">
                   Profit: {formatPaiseCompact(marginByPackageType.partialService.operatingProfitPaise)}
                 </span>
               </div>
@@ -265,79 +301,137 @@ export const FounderAnalyticsPage: React.FC = () => {
         >
           {portfolioLedger && canViewTreasury ? (
             <div className="space-y-2.5 text-xs">
-              <div className="flex justify-between pb-2 border-b border-[#E7E2D8]">
-                <span className="text-[#718096]">Cleared Client Collections:</span>
+              <div className="flex justify-between pb-2 border-b border-[#EDE5DC]">
+                <span className="text-[#7A6E63]">Cleared Client Collections:</span>
                 <span className="font-mono font-bold text-emerald-700">
                   {formatPaiseToINR(portfolioLedger.cashFlow.totalClearedInflowsPaise)}
                 </span>
               </div>
 
-              <div className="flex justify-between pb-2 border-b border-[#E7E2D8]">
-                <span className="text-[#718096]">Cleared Vendor Settlements:</span>
+              <div className="flex justify-between pb-2 border-b border-[#EDE5DC]">
+                <span className="text-[#7A6E63]">Cleared Vendor Settlements:</span>
                 <span className="font-mono font-bold text-rose-700">
                   {formatPaiseToINR(portfolioLedger.cashFlow.totalClearedOutflowsPaise)}
                 </span>
               </div>
 
-              <div className="flex justify-between pb-2 border-b border-[#E7E2D8]">
-                <span className="text-[#718096]">Cleared Direct Expenses:</span>
+              <div className="flex justify-between pb-2 border-b border-[#EDE5DC]">
+                <span className="text-[#7A6E63]">Cleared Direct Expenses:</span>
                 <span className="font-mono font-bold text-stone-700">
                   {formatPaiseToINR(portfolioLedger.cashFlow.totalClearedDirectExpensesPaise)}
                 </span>
               </div>
 
               <div className="flex justify-between pt-1 font-semibold text-sm">
-                <span className="text-[#1E2229]">Consolidated Net Cash:</span>
-                <span className="font-mono font-bold text-[#5B1424]">
+                <span className="text-[#231E1B]">Consolidated Net Cash:</span>
+                <span className="font-mono font-bold text-[#231E1B]">
                   {formatPaiseToINR(portfolioLedger.cashFlow.netCashPositionPaise)}
                 </span>
               </div>
             </div>
           ) : (
-            <div className="p-4 text-center text-xs text-[#718096] italic">
+            <div className="p-4 text-center text-xs text-[#7A6E63] italic">
               Treasury & Cash Position data requires 'analytics:treasury:read' authority.
             </div>
           )}
         </Card>
 
-        {/* Audit Watchdog Across Portfolio */}
+        {/* Working Capital & Outstanding Obligations */}
         <Card
-          title="Portfolio Audit Watchdog"
-          subtitle="Integrity assurance across 25 destination galas"
+          title="Working Capital & Obligations"
+          subtitle="Receivables and payable liabilities tracking"
         >
-          <div className="space-y-3">
-            <div className="p-3 bg-emerald-50 rounded flex items-center justify-between text-xs text-emerald-900">
-              <div className="flex items-center gap-2">
-                <ShieldCheck className="w-5 h-5 text-emerald-700" />
-                <div>
-                  <div className="font-semibold">6-Vector Anomaly Watchdog</div>
-                  <div className="text-[10px] text-emerald-700">
-                    {data.auditAnomaliesTotal === 0
-                      ? 'Zero discrepancies detected across portfolio'
-                      : `${data.auditAnomaliesTotal} anomaly flags under review`}
-                  </div>
-                </div>
+          {portfolioLedger && canViewTreasury ? (
+            <div className="space-y-2.5 text-xs">
+              <div className="flex justify-between pb-2 border-b border-[#EDE5DC]">
+                <span className="text-[#7A6E63]">Outstanding Client Receivables:</span>
+                <span className="font-mono font-bold text-amber-700">
+                  {formatPaiseToINR(portfolioLedger.workingCapital.totalOutstandingReceivablesPaise)}
+                </span>
               </div>
-              <Badge variant={data.auditAnomaliesTotal === 0 ? 'success' : 'danger'} size="sm">
-                {data.auditAnomaliesTotal === 0 ? 'Compliant' : 'Alert'}
-              </Badge>
-            </div>
 
-            <div className="text-[11px] text-[#718096] leading-relaxed p-2 bg-[#F7F4EE] rounded">
-              All currency mathematics execute with exact integer BigInt paise. Direct expenses and vendor bills enforce strict anti-double-counting checks.
+              <div className="flex justify-between pb-2 border-b border-[#EDE5DC]">
+                <span className="text-[#7A6E63]">Unpaid Vendor Liabilities:</span>
+                <span className="font-mono font-bold text-rose-700">
+                  {formatPaiseToINR(portfolioLedger.workingCapital.totalUnpaidVendorLiabilitiesPaise)}
+                </span>
+              </div>
+
+              <div className="flex justify-between pb-2 border-b border-[#EDE5DC]">
+                <span className="text-[#7A6E63]">Unpaid Direct Expenses:</span>
+                <span className="font-mono font-bold text-stone-700">
+                  {formatPaiseToINR(portfolioLedger.workingCapital.totalUnpaidDirectExpensesPaise)}
+                </span>
+              </div>
+
+              <div className="flex items-center gap-1.5 pt-1 text-[11px] text-emerald-700 font-medium">
+                <ShieldCheck className="w-3.5 h-3.5" />
+                <span>Zero Double-Counting Anomaly Protection Active</span>
+              </div>
             </div>
-          </div>
+          ) : (
+            <div className="p-4 text-center text-xs text-[#7A6E63] italic">
+              Working Capital data requires 'analytics:treasury:read' authority.
+            </div>
+          )}
         </Card>
       </div>
 
-      {/* Individual Destination Wedding Profitability Table */}
+      {/* Row 3: Master Luxury Vendor Procurement Performance */}
+      {canViewVendors && vendors.length > 0 && (
+        <Card
+          title="Master Luxury Vendor Performance & Procurement Activity"
+          subtitle="Live database metrics: contracted galas, category distribution, and RFQ quotations"
+        >
+          <div className="overflow-x-auto">
+            <table className="w-full text-xs text-left">
+              <thead className="bg-[#FAF6F1] text-[#231E1B] border-b border-[#EDE5DC]">
+                <tr>
+                  <th className="px-4 py-2.5 font-semibold">Vendor Business Name</th>
+                  <th className="px-4 py-2.5 font-semibold">Service Category</th>
+                  <th className="px-4 py-2.5 font-semibold">City</th>
+                  <th className="px-4 py-2.5 font-semibold">Contact Person</th>
+                  <th className="px-4 py-2.5 font-semibold text-center">Quotations Submitted</th>
+                  <th className="px-4 py-2.5 font-semibold text-right">Contracted Weddings</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[#EDE5DC]">
+                {vendors.map((v) => (
+                  <tr key={v.id} className="hover:bg-[#FAF8F5] transition-colors">
+                    <td className="px-4 py-3 font-serif font-bold text-[#231E1B]">
+                      {v.businessName}
+                    </td>
+                    <td className="px-4 py-3">
+                      <Badge variant="neutral" size="sm">
+                        {v.category.replace(/_/g, ' ')}
+                      </Badge>
+                    </td>
+                    <td className="px-4 py-3 text-[#4A5568]">{v.city}</td>
+                    <td className="px-4 py-3 text-[#7A6E63]">{v.contactPerson}</td>
+                    <td className="px-4 py-3 font-mono text-center">
+                      <span className="px-2 py-0.5 bg-blue-50 text-blue-800 rounded font-semibold">
+                        {v._count.quotations} RFQ Quotes
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 font-mono text-right font-bold text-emerald-800">
+                      {v._count.weddingVendors} Awarded
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </Card>
+      )}
+
+      {/* Row 4: Individual Destination Wedding Profitability Table */}
       <Card
         title="Destination Wedding Gala Ledger Summaries"
         subtitle="Individual performance, guest counts, and net cash positions across Rajasthan's palace destinations"
       >
         <div className="overflow-x-auto">
           <table className="w-full text-xs text-left">
-            <thead className="bg-[#F7F4EE] text-[#1E2229] border-b border-[#E7E2D8]">
+            <thead className="bg-[#FAF6F1] text-[#231E1B] border-b border-[#EDE5DC]">
               <tr>
                 <th className="px-4 py-2.5 font-semibold">Wedding Gala</th>
                 <th className="px-4 py-2.5 font-semibold">Palace Venue</th>
@@ -348,10 +442,10 @@ export const FounderAnalyticsPage: React.FC = () => {
                 <th className="px-4 py-2.5 font-semibold text-right">Net Cash Position</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#E7E2D8]">
+            <tbody className="divide-y divide-[#EDE5DC]">
               {data.weddings.map((w) => (
-                <tr key={w.weddingId} className="hover:bg-[#FDFBF7] transition-colors">
-                  <td className="px-4 py-3 font-serif font-bold text-[#1E2229]">
+                <tr key={w.weddingId} className="hover:bg-[#FAF8F5] transition-colors">
+                  <td className="px-4 py-3 font-serif font-bold text-[#231E1B]">
                     {w.weddingTitle}
                   </td>
                   <td className="px-4 py-3 text-[#4A5568]">
@@ -363,13 +457,13 @@ export const FounderAnalyticsPage: React.FC = () => {
                     </Badge>
                   </td>
                   <td className="px-4 py-3 font-mono">{w.targetGuestCount} Pax</td>
-                  <td className="px-4 py-3 font-mono font-medium text-[#1E2229]">
+                  <td className="px-4 py-3 font-mono font-medium text-[#231E1B]">
                     {formatPaiseToINR(w.ledger.accrual.invoicedClientRevenuePaise)}
                   </td>
                   <td className="px-4 py-3 font-mono font-semibold text-emerald-800">
                     {formatPaiseToINR(w.ledger.accrual.operatingProfitPaise)}
                   </td>
-                  <td className="px-4 py-3 font-mono font-bold text-[#5B1424] text-right">
+                  <td className="px-4 py-3 font-mono font-bold text-[#231E1B] text-right">
                     {formatPaiseToINR(w.ledger.cashFlow.netActualCashFlowPaise)}
                   </td>
                 </tr>

@@ -48,3 +48,10 @@ coverage/
 .vitest/
 .cache/
 .eslintcache
+
+# Large demo recordings
+*.webm
+*.mp4
+recordings/
+client/public/recordings/
+

@@ -1,7 +1,8 @@
 import { Router, Request, Response, NextFunction } from "express";
 import { PrismaClient } from "@prisma/client";
 import { WeddingOpsService } from "../services/weddingOps.service.js";
-import { ConfirmWeddingSchema, hasPermission, UserRole } from "shared";
+import { GuestPortalService } from "../services/guest-portal.service.js";
+import { ConfirmWeddingSchema, GeneratePortalTokenSchema, hasPermission, UserRole } from "shared";
 import { z } from "zod";
 import { authenticate, requirePermission, validateCsrf } from "../middleware/auth.js";
 
@@ -24,6 +25,7 @@ const CreateCustomTaskSchema = z.object({
 export function createWeddingOpsRouter(prisma: PrismaClient): Router {
   const router = Router();
   const weddingOpsService = new WeddingOpsService(prisma);
+  const portalService = new GuestPortalService(prisma);
 
   // All Wedding Operations routes require an authenticated session
   router.use(authenticate(prisma));
@@ -81,7 +83,51 @@ export function createWeddingOpsRouter(prisma: PrismaClient): Router {
     }
   });
 
-  // List tasks for wedding
+  // -------------------------------------------------------------
+  // FEATURE 3: GUEST MANAGEMENT & QR PORTAL TOKEN CONTROL
+  // -------------------------------------------------------------
+  router.post("/:id/portal-token", requirePermission("weddings:wedding:update"), validateCsrf(prisma), async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const validated = GeneratePortalTokenSchema.parse(req.body);
+      const result = await portalService.generatePortalToken(req.params.id, validated);
+      res.status(201).json({ success: true, data: result });
+    } catch (err) {
+      next(err);
+    }
+  });
+
+  router.delete("/:id/portal-token", requirePermission("weddings:wedding:update"), validateCsrf(prisma), async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      await portalService.revokePortalToken(req.params.id);
+      res.json({ success: true, message: "Guest portal access revoked successfully" });
+    } catch (err) {
+      next(err);
+    }
+  });
+
+  router.get("/:id/guests", requirePermission("weddings:wedding:read"), async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const guests = await portalService.getWeddingGuests(req.params.id);
+      res.json({ success: true, data: guests });
+    } catch (err) {
+      next(err);
+    }
+  });
+
+  router.get("/:id/guests/export", requirePermission("weddings:wedding:update"), async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const csv = await portalService.exportGuestsCsv(req.params.id);
+      res.setHeader("Content-Type", "text/csv");
+      res.setHeader("Content-Disposition", `attachment; filename="wedding_${req.params.id}_guests.csv"`);
+      res.send(csv);
+    } catch (err) {
+      next(err);
+    }
+  });
+
+  // -------------------------------------------------------------
+  // TASKS
+  // -------------------------------------------------------------
   router.get("/:id/tasks", requirePermission("weddings:task:read"), async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { stage, priority, category, assignedToId } = req.query;

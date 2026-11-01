@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
-import { AuthenticatedUser, PermissionKey, LoginInput } from "shared";
+import { AuthenticatedUser, PermissionKey, LoginInput, RegisterInput } from "shared";
 import { apiFetch, setCsrfToken } from "../services/api";
 
 interface AuthContextType {
@@ -8,6 +8,7 @@ interface AuthContextType {
   isLoading: boolean;
   isAuthenticated: boolean;
   login: (credentials: LoginInput) => Promise<void>;
+  register: (data: RegisterInput) => Promise<void>;
   logout: () => Promise<void>;
   hasPermission: (permission: PermissionKey) => boolean;
   checkAuth: () => Promise<void>;
@@ -79,6 +80,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const register = async (input: RegisterInput): Promise<void> => {
+    const res = await apiFetch("/api/auth/register", {
+      method: "POST",
+      body: JSON.stringify(input)
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(data.error || "Registration failed");
+    }
+
+    setUser(data.user);
+    setPermissions(data.permissions || []);
+    if (data.csrfToken) {
+      setCsrfToken(data.csrfToken);
+    }
+  };
+
   const logout = async (): Promise<void> => {
     try {
       await apiFetch("/api/auth/logout", {
@@ -95,8 +115,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const hasPermission = (permission: PermissionKey): boolean => {
     if (!user) return false;
-    // Admins and Founders have full access or check permission array
-    if (user.role === "ADMIN" || user.role === "FOUNDER") return true;
+    if (user.role === "ADMIN") return true;
     return permissions.includes(permission);
   };
 
@@ -108,6 +127,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         isLoading,
         isAuthenticated: !!user,
         login,
+        register,
         logout,
         hasPermission,
         checkAuth

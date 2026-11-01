@@ -1,6 +1,7 @@
 import { Router, Request, Response } from "express";
 import { PrismaClient } from "@prisma/client";
-import { hasPermission, UserRole } from "shared";
+import { hasPermission, UserRole, SimulateBudgetSchema } from "shared";
+import { BudgetSimulatorService } from "../services/budget-simulator.service.js";
 import { ClientBillingService } from "../services/clientBilling.service.js";
 import { VendorSettlementService } from "../services/vendorSettlement.service.js";
 import { createDirectExpensePaymentWithRetry } from "../services/directExpensePayment.service.js";
@@ -629,6 +630,20 @@ export function createFinanceRouter(prisma: PrismaClient): Router {
       res.json(sanitizedReport);
     } catch (err: any) {
       res.status(500).json({ error: err.message || "Failed to compute ledger" });
+    }
+  });
+
+  // -------------------------------------------------------------
+  // FEATURE 2: WEDDING BUDGET IMPACT SIMULATOR
+  // -------------------------------------------------------------
+  router.post("/simulate-budget", requirePermission("finance:ledger:read"), validateCsrf(prisma), async (req: Request, res: Response) => {
+    try {
+      const validated = SimulateBudgetSchema.parse(req.body);
+      const simulatorService = new BudgetSimulatorService(prisma);
+      const simulation = await simulatorService.simulateBudget(validated);
+      res.json({ success: true, data: simulation });
+    } catch (err: any) {
+      res.status(400).json({ error: err.message || "Failed to simulate budget impact" });
     }
   });
 

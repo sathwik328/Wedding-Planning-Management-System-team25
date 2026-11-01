@@ -17,26 +17,26 @@ export const Badge: React.FC<BadgeProps> = ({
   dot = false
 }) => {
   const styles = BADGE_STYLES[variant];
-  const sizeClass = size === 'sm' ? 'text-xs px-2 py-0.5' : 'text-xs px-2.5 py-1';
+  const sizeClass = size === 'sm' ? 'text-[11px] px-2.5 py-0.5' : 'text-xs px-3 py-1';
 
   return (
     <span
-      className={`inline-flex items-center font-medium border rounded-full ${styles.bg} ${styles.text} ${styles.border} ${sizeClass} ${className}`}
+      className={`inline-flex items-center font-medium border rounded-full tracking-wide ${styles.bg} ${styles.text} ${styles.border} ${sizeClass} ${className}`}
     >
       {dot && (
         <span
           className={`w-1.5 h-1.5 rounded-full mr-1.5 ${
             variant === 'wine'
-              ? 'bg-[#5B1424]'
+              ? 'bg-[#6E1C30]'
               : variant === 'gold'
-              ? 'bg-[#C5A059]'
+              ? 'bg-[#8A6D3B]'
               : variant === 'success'
-              ? 'bg-emerald-600'
+              ? 'bg-[#2D633C]'
               : variant === 'danger'
-              ? 'bg-rose-600'
+              ? 'bg-[#9C2B2B]'
               : variant === 'warning'
-              ? 'bg-amber-600'
-              : 'bg-stone-500'
+              ? 'bg-[#965522]'
+              : 'bg-stone-400'
           }`}
         />
       )}
