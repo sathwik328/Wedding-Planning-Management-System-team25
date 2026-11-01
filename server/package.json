@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "tsx watch src/server.ts",
     "build": "tsc",
+    "start": "node dist/server.js",
     "test": "vitest run",
     "verify:parity": "tsx scripts/verify-schema-parity.ts",
     "prisma:generate": "prisma generate --schema=./prisma/schema.prisma",

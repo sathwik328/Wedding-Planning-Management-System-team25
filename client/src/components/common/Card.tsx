@@ -22,18 +22,18 @@ export const Card: React.FC<CardProps> = ({
   footer
 }) => {
   return (
-    <div className={`bg-white border border-[#E7E2D8] rounded-md shadow-sm overflow-hidden ${className}`}>
+    <div className={`bg-white border border-[#EDE6DF] rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.02)] overflow-hidden transition-all duration-200 ${className}`}>
       {(title || action) && (
-        <div className={`px-5 py-4 border-b border-[#E7E2D8] flex items-center justify-between ${headerClassName}`}>
+        <div className={`px-6 py-4.5 border-b border-[#F4EFEA] flex items-center justify-between ${headerClassName}`}>
           <div>
-            {title && <h3 className="font-serif text-lg font-semibold text-[#1E2229]">{title}</h3>}
-            {subtitle && <p className="text-xs text-[#718096] mt-0.5">{subtitle}</p>}
+            {title && <h3 className="font-serif text-lg font-medium text-[#24201D] tracking-wide">{title}</h3>}
+            {subtitle && <p className="text-xs text-[#78716A] mt-0.5">{subtitle}</p>}
           </div>
           {action && <div>{action}</div>}
         </div>
       )}
-      <div className={`p-5 ${bodyClassName}`}>{children}</div>
-      {footer && <div className="px-5 py-3 bg-[#F7F4EE] border-t border-[#E7E2D8]">{footer}</div>}
+      <div className={`p-6 ${bodyClassName}`}>{children}</div>
+      {footer && <div className="px-6 py-3.5 bg-[#FAF7F4] border-t border-[#EDE6DF]">{footer}</div>}
     </div>
   );
 };
