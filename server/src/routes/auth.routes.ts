@@ -42,7 +42,14 @@ export function createAuthRouter(prisma: PrismaClient, rateLimiter?: LoginRateLi
       try {
         const originUrl = new URL(origin);
         const originBase = `${originUrl.protocol}//${originUrl.host}`;
-        if (!allowedOrigins.includes(originBase) && !allowedOrigins.includes("*")) {
+        const hostHeader = (req.headers["x-forwarded-host"] || req.headers.host || "").toString();
+        const isSameOrigin = Boolean(
+          (hostHeader && (originUrl.host === hostHeader || hostHeader.startsWith(originUrl.host))) ||
+          originUrl.hostname.endsWith(".onrender.com") ||
+          originUrl.hostname === "localhost" ||
+          originUrl.hostname === "127.0.0.1"
+        );
+        if (!isSameOrigin && !allowedOrigins.includes(originBase) && !allowedOrigins.includes("*")) {
           return res.status(403).json({ error: "Access denied. Cross-origin login prohibited." });
         }
       } catch {
@@ -141,7 +148,14 @@ export function createAuthRouter(prisma: PrismaClient, rateLimiter?: LoginRateLi
       try {
         const originUrl = new URL(origin);
         const originBase = `${originUrl.protocol}//${originUrl.host}`;
-        if (!allowedOrigins.includes(originBase) && !allowedOrigins.includes("*")) {
+        const hostHeader = (req.headers["x-forwarded-host"] || req.headers.host || "").toString();
+        const isSameOrigin = Boolean(
+          (hostHeader && (originUrl.host === hostHeader || hostHeader.startsWith(originUrl.host))) ||
+          originUrl.hostname.endsWith(".onrender.com") ||
+          originUrl.hostname === "localhost" ||
+          originUrl.hostname === "127.0.0.1"
+        );
+        if (!isSameOrigin && !allowedOrigins.includes(originBase) && !allowedOrigins.includes("*")) {
           return res.status(403).json({ error: "Access denied. Cross-origin registration prohibited." });
         }
       } catch {

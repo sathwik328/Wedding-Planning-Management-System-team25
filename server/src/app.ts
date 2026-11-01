@@ -33,11 +33,20 @@ export function createApp(prisma: PrismaClient): Express {
   app.use(
     cors({
       origin: (origin, callback) => {
-        if (!origin || allowedOrigins.includes(origin)) {
-          callback(null, true);
-        } else {
-          callback(null, false);
+        if (!origin || allowedOrigins.includes(origin) || allowedOrigins.includes("*")) {
+          return callback(null, true);
         }
+        try {
+          const originUrl = new URL(origin);
+          if (
+            originUrl.hostname.endsWith(".onrender.com") ||
+            originUrl.hostname === "localhost" ||
+            originUrl.hostname === "127.0.0.1"
+          ) {
+            return callback(null, true);
+          }
+        } catch {}
+        callback(null, false);
       },
       credentials: true,
       methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
