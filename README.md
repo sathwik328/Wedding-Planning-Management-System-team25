@@ -23,7 +23,7 @@ Watch the complete guided video tour demonstrating the full luxury wedding lifec
   </video>
   <br/>
   <p>
-    🎬 <strong><a href="(https://youtu.be/a2rSGeVK4qU)">▶ Play / Download Official Demo Video</a></strong> &nbsp;|&nbsp; 
+    🎬 <strong><a href="[w](https://youtu.be/a2rSGeVK4qU)">▶ Play / Download Official Demo Video</a></strong> &nbsp;|&nbsp; 
   </p>
 </div>
 
