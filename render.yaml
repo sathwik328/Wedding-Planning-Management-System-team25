@@ -3,8 +3,8 @@ services:
     name: royal-knot-web
     env: node
     plan: free
-    buildCommand: npm ci && npm run prisma:generate && npm run build
-    startCommand: npm run prisma:migrate && npm run prisma:seed && npm start
+    buildCommand: npm install --include=dev && npm run prisma:generate && npm run build
+    startCommand: node server/scripts/prepare-db.js && npm start
     envVars:
       - key: NODE_ENV
         value: production

@@ -13,6 +13,7 @@
     "build:shared": "npm run build --workspace=shared",
     "build:server": "npm run build --workspace=server",
     "build:client": "npm run build --workspace=client",
+    "deploy:prepare": "node server/scripts/prepare-db.js",
     "start": "node server/dist/server.js",
     "dev:server": "npm run dev --workspace=server",
     "dev:client": "npm run dev --workspace=client",
@@ -22,9 +23,11 @@
     "prisma:migrate": "npm run prisma:migrate --workspace=server",
     "prisma:seed": "npm run prisma:seed --workspace=server"
   },
+  "dependencies": {
+    "typescript": "^5.4.5"
+  },
   "devDependencies": {
     "playwright": "^1.64.1",
-    "puppeteer-core": "^25.16.0",
-    "typescript": "^5.4.5"
+    "puppeteer-core": "^25.16.0"
   }
 }
