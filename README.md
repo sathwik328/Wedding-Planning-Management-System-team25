@@ -18,8 +18,8 @@
 Watch the complete guided video tour demonstrating the full luxury wedding lifecycle — VIP enquiry intake, touch contract signing, milestone timeline automation, multi-vendor RFQ comparison matrices, double-entry financial settlements with zero margin leakage, and the 5 Phase 8 special features (Readiness Radar, Budget Simulator, Guest QR Portal, Contingency Planner, and Vendor Reliability):
 
 <div align="center">
-  <video src="./client/public/recordings/the-royal-knot-official-demo.webm" width="100%" controls="controls" poster="./client/public/royal-wedding-palace.jpg">
-    <p>Your browser does not support the video tag. <a href="./client/public/recordings/the-royal-knot-official-demo.webm">Download or play the official demo video directly</a>.</p>
+  <video src="./client/public/recordings/the-royal-knot-official-demo.mp4" width="100%" controls="controls" poster="./client/public/royal-wedding-palace.jpg">
+    <p>Your browser does not support the video tag. <a href="./client/public/recordings/the-royal-knot-official-demo.mp4">Download or play the official demo video directly</a>.</p>
   </video>
   <br/>
   <p>
