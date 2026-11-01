@@ -38,17 +38,24 @@ if (isPostgres) {
       cwd: serverDir,
       stdio: "inherit"
     });
-
-    console.log("[DB] Seeding demonstration data...");
-    execSync("npm run prisma:seed", {
-      cwd: serverDir,
-      stdio: "inherit"
-    });
-    console.log("[DB] PostgreSQL setup completed successfully.");
+    console.log("[DB] PostgreSQL schema ready.");
   } catch (err) {
     console.error("[DB] Note during PostgreSQL initialization:", err?.message || err);
+    throw err;
   }
 } else {
   console.log("[DB] SQLite database active.");
+  try {
+    execSync("npx prisma generate --schema=./prisma/schema.prisma", {
+      cwd: serverDir,
+      stdio: "inherit"
+    });
+    execSync("npx prisma db push --schema=./prisma/schema.prisma", {
+      cwd: serverDir,
+      stdio: "inherit"
+    });
+  } catch (err) {
+    console.warn("[DB] Note during SQLite initialization:", err?.message || err);
+  }
 }
 console.log("-----------------------------------------");
