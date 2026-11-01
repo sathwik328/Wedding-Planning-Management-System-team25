@@ -47,10 +47,13 @@ const COUPLE_NAMES = [
 
 /**
  * Validate the execution environment for seeding.
- * Fails immediately if executed in production or if DEMO_USER_PASSWORD is missing or blank.
+ * Fails immediately if executed in production unless explicitly permitted via ALLOW_DEMO_SEED=true,
+ * or if DEMO_USER_PASSWORD is missing or blank.
  */
-export function validateSeedEnvironment(env: { NODE_ENV?: string; DEMO_USER_PASSWORD?: string } = process.env): string {
-  if (env.NODE_ENV === "production") {
+export function validateSeedEnvironment(
+  env: { NODE_ENV?: string; DEMO_USER_PASSWORD?: string; ALLOW_DEMO_SEED?: string } = process.env
+): string {
+  if (env.NODE_ENV === "production" && env.ALLOW_DEMO_SEED !== "true") {
     throw new Error("Seeding demo accounts is strictly prohibited in production environments (NODE_ENV=production).");
   }
 
@@ -65,7 +68,17 @@ export function validateSeedEnvironment(env: { NODE_ENV?: string; DEMO_USER_PASS
 }
 
 async function main() {
-  const demoUserPassword = validateSeedEnvironment(process.env);
+  let demoUserPassword: string;
+  try {
+    demoUserPassword = validateSeedEnvironment(process.env);
+  } catch (err: any) {
+    if (process.env.NODE_ENV === "production" && process.env.ALLOW_DEMO_SEED !== "true") {
+      console.warn(`[SEED] Notice: ${err.message}`);
+      return;
+    }
+    throw err;
+  }
+
   console.log("Seeding The Royal Knot demonstration database...");
 
   // 1. Seed Team Members / Users
